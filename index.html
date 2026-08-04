@@ -644,8 +644,8 @@ let done = false;
 new IntersectionObserver(entries => {
   if (entries[0].isIntersecting && !done) {
     done = true;
-    animNum(document.getElementById('counter-number'), 282);
-    animNum(document.getElementById('cnt-kast'), 644);
+    animNum(document.getElementById('counter-number'), 283);
+    animNum(document.getElementById('cnt-kast'), 650);
     animNum(document.getElementById('cnt-opieka'), 21);
   }
 }, { threshold: .3 }).observe(document.getElementById('counter-section'));
