@@ -1,0 +1,451 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<meta name="theme-color" content="#0F5C5A">
+<title>Dyżury</title>
+<style>
+:root{--navy:#0F5C5A;--green:#2F9E62;--red:#D64545;--yellow:#E0A030;--bg:#F5F0E6;--text:#1F2D2B;--muted:#7C8A86;--border:rgba(31,45,43,.13);--accent:#E0714B}
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+body{font-family:-apple-system,'Helvetica Neue',Arial,sans-serif;background:var(--bg);color:var(--text);min-height:100vh;padding-bottom:3rem}
+header{background:linear-gradient(135deg,#0F5C5A,#0A3F44);color:#fff;padding:.9rem 1rem;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:50;box-shadow:0 2px 16px rgba(0,0,0,.2)}
+header h1{font-size:1.1rem;font-weight:800}
+#user-badge{font-size:.75rem;font-weight:700;background:rgba(255,255,255,.15);padding:.3rem .7rem;border-radius:20px;cursor:pointer}
+.cal-nav{display:flex;align-items:center;justify-content:space-between;padding:.75rem 1rem;background:#fff;border-bottom:1px solid var(--border)}
+.cal-nav button{background:none;border:none;font-size:1.6rem;color:var(--navy);padding:.2rem .6rem;cursor:pointer}
+#month-label{font-weight:700;text-transform:capitalize}
+.weekdays,.grid{display:grid;grid-template-columns:repeat(7,1fr);background:#fff}
+.weekdays{padding:.5rem .5rem 0}
+.weekdays span{text-align:center;font-size:.68rem;font-weight:700;color:var(--muted);text-transform:uppercase}
+.grid{gap:.35rem;padding:.5rem}
+.day{aspect-ratio:1;display:flex;flex-direction:column;align-items:center;justify-content:center;border-radius:10px;background:var(--bg);cursor:pointer;border:2px solid transparent;position:relative;user-select:none}
+.day b{font-size:.9rem}
+.day small{font-size:.62rem;font-weight:700;opacity:.9}
+.day.other{opacity:.35}
+.day.today{background:#FBE3D8;border-color:var(--accent)}
+.day.has{background:var(--green);color:#fff}
+.day.has.today{border-color:var(--accent);box-shadow:0 0 0 2px var(--accent)}
+.day.mine::after{content:'';position:absolute;top:4px;right:4px;width:8px;height:8px;border-radius:50%;background:#fff;box-shadow:0 0 0 2px var(--navy)}
+.legend{font-size:.72rem;color:var(--muted);padding:.5rem 1rem;display:flex;gap:1rem;flex-wrap:wrap;background:#fff;border-bottom:1px solid var(--border)}
+.legend i{display:inline-block;width:10px;height:10px;border-radius:3px;margin-right:.3rem;vertical-align:middle}
+.overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:200;align-items:flex-end;justify-content:center}
+.overlay.show{display:flex}
+.sheet{background:#fff;border-radius:20px 20px 0 0;width:100%;max-width:520px;padding:1.2rem 1.2rem 2rem;max-height:92vh;overflow-y:auto}
+.handle{width:36px;height:4px;background:var(--border);border-radius:2px;margin:0 auto 1rem}
+.sheet h2{font-size:1.05rem;font-weight:800;margin-bottom:.2rem;text-transform:capitalize}
+.sub{font-size:.8rem;color:var(--muted);margin-bottom:1rem}
+.shift{border:1.5px solid var(--border);border-radius:14px;padding:.75rem .85rem;margin-bottom:.75rem}
+.shift-h{display:flex;justify-content:space-between;align-items:center;margin-bottom:.5rem}
+.shift-h strong{font-size:.95rem}
+.shift-h span{font-size:.72rem;color:var(--muted)}
+.entry{display:flex;flex-direction:column;gap:.25rem;padding:.45rem .6rem;border-radius:10px;background:var(--bg);margin-bottom:.4rem}
+.entry.mine{background:#DDF1E4}
+.entry .nm{font-weight:700;font-size:.9rem}
+.entry.removed .nm{text-decoration:line-through;color:var(--muted)}
+.entry.removed{opacity:.7}
+.entry .meta{font-size:.7rem;color:var(--muted)}
+.entry .note{font-size:.82rem;white-space:pre-wrap}
+.entry.removed .note{text-decoration:line-through;color:var(--muted)}
+.none{font-size:.8rem;color:var(--muted);padding:.2rem 0 .5rem}
+.btn{border:none;border-radius:10px;padding:.55rem .8rem;font-size:.82rem;font-weight:700;cursor:pointer;font-family:inherit}
+.btn:active{opacity:.7}
+.btn-p{background:var(--navy);color:#fff}
+.btn-g{background:var(--green);color:#fff}
+.btn-d{background:var(--red);color:#fff}
+.btn-l{background:#fff;border:1.5px solid var(--border);color:var(--text)}
+.row{display:flex;gap:.4rem;flex-wrap:wrap;margin-top:.3rem}
+textarea,input.note-in{width:100%;border:1.5px solid var(--border);border-radius:10px;padding:.5rem .65rem;font-size:.88rem;font-family:inherit;color:var(--text);resize:vertical}
+textarea:focus{outline:none;border-color:var(--navy)}
+.toast{position:fixed;bottom:1.5rem;left:50%;transform:translateX(-50%) translateY(10px);background:var(--navy);color:#fff;padding:.55rem 1.2rem;border-radius:30px;font-size:.85rem;font-weight:600;opacity:0;pointer-events:none;transition:.2s;z-index:600;white-space:nowrap}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+.pin-screen{position:fixed;inset:0;background:var(--navy);z-index:9999;display:flex;flex-direction:column;align-items:center;gap:1.2rem;padding-top:8vh;overflow-y:auto;padding-bottom:2rem}
+.pin-title{color:#fff;font-size:1.3rem;font-weight:800}
+.pin-sub{color:rgba(255,255,255,.6);font-size:.82rem;margin-top:-.8rem}
+.pin-dots{display:flex;gap:.8rem}
+.pin-dot{width:14px;height:14px;border-radius:50%;border:2px solid rgba(255,255,255,.4)}
+.pin-dot.filled{background:#fff;border-color:#fff}
+.pin-dot.error{background:var(--red);border-color:var(--red)}
+.pin-pad{display:grid;grid-template-columns:repeat(3,1fr);gap:.6rem;width:260px}
+.pin-btn{background:rgba(255,255,255,.1);border:none;border-radius:14px;height:64px;font-size:1.4rem;font-weight:700;color:#fff;cursor:pointer;font-family:inherit}
+.pin-btn:active{background:rgba(255,255,255,.25)}
+.pin-btn.empty{background:none;pointer-events:none}
+.pin-error{color:#ff8a8a;font-size:.82rem;font-weight:600;height:1.2rem}
+.admin-bar{display:none;background:#FFF4E5;border-bottom:2px solid var(--accent);padding:.6rem 1rem}
+.admin-bar.show{display:block}
+.admin-bar b{font-size:.78rem;color:var(--accent);text-transform:uppercase;letter-spacing:.06em}
+.admin-box{border:1.5px dashed var(--accent);border-radius:12px;padding:.6rem;margin-top:.5rem;background:#FFF9F2}
+.admin-box select{width:100%;border:1.5px solid var(--border);border-radius:10px;padding:.5rem;font-size:.88rem;font-family:inherit;margin-bottom:.4rem;background:#fff}
+.btn-o{background:var(--accent);color:#fff}
+.btn-x{background:#fff;border:1.5px solid var(--red);color:var(--red)}
+@media(min-width:700px){.grid{max-width:560px;margin:0 auto}.weekdays{max-width:560px;margin:0 auto}}
+</style>
+</head>
+<body>
+
+<header>
+  <h1>🗓️ Dyżury</h1>
+  <div id="user-badge" onclick="logout()" title="Kliknij, aby się wylogować"></div>
+</header>
+
+<div class="admin-bar" id="admin-bar">
+  <b>🛠 Tryb administratora (testy)</b>
+  <div class="row">
+    <button class="btn btn-x" onclick="adminWipeMonth()">Usuń cały miesiąc</button>
+    <button class="btn btn-d" onclick="adminWipeAll()">Usuń WSZYSTKO</button>
+  </div>
+</div>
+<div class="cal-nav">
+  <button onclick="changeMonth(-1)">‹</button>
+  <div id="month-label"></div>
+  <button onclick="changeMonth(1)">›</button>
+</div>
+<div class="weekdays"><span>Pn</span><span>Wt</span><span>Śr</span><span>Cz</span><span>Pt</span><span>So</span><span>Nd</span></div>
+<div class="grid" id="grid"></div>
+<div class="legend">
+  <span><i style="background:var(--green)"></i>ktoś wpisany</span>
+  <span><i style="background:#FBE3D8;border:1px solid #E0714B"></i>dziś</span>
+  <span><i style="background:#fff;box-shadow:0 0 0 2px var(--navy)"></i>jesteś wpisany/a</span>
+</div>
+
+<div class="overlay" id="day-overlay">
+  <div class="sheet"><div class="handle"></div><div id="day-content"></div></div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<!-- PIN -->
+<div class="pin-screen" id="pin-screen">
+  <div class="pin-title">Dyżury</div>
+  <div class="pin-sub">Wpisz swój 4-cyfrowy PIN</div>
+  <div class="pin-dots">
+    <div class="pin-dot" id="pd0"></div><div class="pin-dot" id="pd1"></div>
+    <div class="pin-dot" id="pd2"></div><div class="pin-dot" id="pd3"></div>
+  </div>
+  <div class="pin-error" id="pin-error"></div>
+  <div class="pin-pad">
+    <button class="pin-btn" onclick="pinKey('1')">1</button><button class="pin-btn" onclick="pinKey('2')">2</button><button class="pin-btn" onclick="pinKey('3')">3</button>
+    <button class="pin-btn" onclick="pinKey('4')">4</button><button class="pin-btn" onclick="pinKey('5')">5</button><button class="pin-btn" onclick="pinKey('6')">6</button>
+    <button class="pin-btn" onclick="pinKey('7')">7</button><button class="pin-btn" onclick="pinKey('8')">8</button><button class="pin-btn" onclick="pinKey('9')">9</button>
+    <button class="pin-btn empty"></button><button class="pin-btn" onclick="pinKey('0')">0</button><button class="pin-btn" onclick="pinDel()">⌫</button>
+  </div>
+</div>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-app.js";
+import { getFirestore, collection, doc, setDoc, updateDoc, deleteDoc, getDocs, writeBatch, onSnapshot, query, where }
+  from "https://www.gstatic.com/firebasejs/12.15.0/firebase-firestore.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyBOGm3N-8zPtjvVv7hx1F-jqFpBU-dD7RY",
+  authDomain: "rezerwacja-af82e.firebaseapp.com",
+  projectId: "rezerwacja-af82e",
+  storageBucket: "rezerwacja-af82e.firebasestorage.app",
+  messagingSenderId: "316318620114",
+  appId: "1:316318620114:web:453d19957ab0af4f8b100b"
+};
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+const COL = 'dyzury';
+
+// Skróty SHA-256 ("dyzury:" + PIN) — PIN-y nie leżą w kodzie jawnym.
+const USERS = [
+  {id:"u1",name:"Beata Makowska",hash:"b768aebb73b7ba303744f94589009a8dee43a54a411abb11cf68b6c35f35ff41"},
+  {id:"u2",name:"Beata Siemieńska",hash:"5e42002668a48c93bd20f658106f96c8ee6ddfb41f4dc37252b5cbc0fbd21146"},
+  {id:"u3",name:"Damian Szank",hash:"e6ec3ee57bc5af329b92e8157284f5c1c708e1e7e433f6a2fbb1c8245685d164"},
+  {id:"u4",name:"Emilia Wawrowska",hash:"b781191d86dbb2110f5e5bcf0f98e39e74feff66b7ccabef48cbe1bbbf608305"},
+  {id:"u5",name:"Grzegorz Wiśniewski",hash:"dbb5bd64916b0742bc1527fe93535d9c6b27c0e31f64ece65e96d8f6d7382eac"},
+  {id:"u6",name:"Jagoda Czarnota",hash:"850622a3ca98952f38666870e57e74499b7e8bb3437501e0bdc2e170f41baee8"},
+  {id:"u7",name:"Kasia Labuda",hash:"5e68fbcc1e79b61ff04454a51afc842e335c58ae7c96f15a8d4540ad470b21bd"},
+  {id:"u8",name:"Magdalena Wodzik",hash:"f882d72f94a630bf542397233d901a13fe02c671756dbca9ba6dfd7f375f858a"},
+  {id:"u9",name:"Monika Pstrong",hash:"bb1f648fc4f0f90167e2194b3b76f83074b1d13a8a6b75606803bc560e7fdaf0"},
+  {id:"u10",name:"Ola Prorok",hash:"8bb3d786edaa9922aaefe2bf51f9ac4dc23e590ed3c8555ac895614f94633b29"},
+  {id:"u11",name:"Patrycja Cherek",hash:"08391494ccc44956aa4f78146c3513b6967c2388b7745bb285456d984f6d14c2"}
+];
+const SHIFTS = [
+  {key:'rano', label:'🌅 Rano'},
+  {key:'popoludnie', label:'☀️ Popołudnie'},
+  {key:'wieczor', label:'🌙 Wieczór'}
+];
+
+const ADMIN_ID = 'u5';          // Grzegorz Wiśniewski — pełny admin (też usuwanie bez śladu)
+const MANAGER_ID = 'u10';       // Ola Prorok — dodaje i wypisuje wszystkich
+let me = null;                 // {id,name}
+let entries = {};              // id -> wpis (bieżący miesiąc)
+let selDate = null;
+const now = new Date();
+let calYear = now.getFullYear(), calMonth = now.getMonth();
+let unsub = null;
+
+const pad2 = n => n<10 ? '0'+n : ''+n;
+const ymd = d => d.getFullYear()+'-'+pad2(d.getMonth()+1)+'-'+pad2(d.getDate());
+const todayStr = () => ymd(new Date());
+const uid = () => Date.now().toString(36)+Math.random().toString(36).slice(2,6);
+const esc = s => String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+window.toast = msg => {const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),2300)};
+
+// ─── DANE ───
+function subscribeMonth(){
+  if(unsub) unsub();
+  const start = `${calYear}-${pad2(calMonth+1)}-01`;
+  const end = `${calYear}-${pad2(calMonth+1)}-${pad2(new Date(calYear,calMonth+1,0).getDate())}`;
+  // Pobieramy trochę szerszy zakres (dni z sąsiednich miesięcy widoczne w siatce)
+  const s = new Date(calYear,calMonth,1); s.setDate(s.getDate()-7);
+  const e = new Date(calYear,calMonth+1,0); e.setDate(e.getDate()+7);
+  const q = query(collection(db,COL), where('date','>=',ymd(s)), where('date','<=',ymd(e)));
+  unsub = onSnapshot(q, snap=>{
+    entries = {};
+    snap.forEach(d => entries[d.id] = d.data());
+    renderCalendar();
+    if(document.getElementById('day-overlay').classList.contains('show')) renderDay();
+  }, err=>{ console.error(err); toast('Błąd połączenia z bazą'); });
+}
+const entriesFor = (date, shift) =>
+  Object.values(entries).filter(e=>e.date===date && (!shift || e.shift===shift))
+        .sort((a,b)=>(a.createdAt||'').localeCompare(b.createdAt||''));
+const activeFor = date => Object.values(entries).filter(e=>e.date===date && !e.removed);
+
+// ─── KALENDARZ ───
+function renderCalendar(){
+  const mies=['styczeń','luty','marzec','kwiecień','maj','czerwiec','lipiec','sierpień','wrzesień','październik','listopad','grudzień'];
+  document.getElementById('month-label').textContent = mies[calMonth]+' '+calYear;
+  const leading = (new Date(calYear,calMonth,1).getDay()+6)%7;
+  const dim = new Date(calYear,calMonth+1,0).getDate();
+  const cells = Math.ceil((leading+dim)/7)*7;
+  const today = todayStr();
+  let html='';
+  for(let i=0;i<cells;i++){
+    const d = new Date(calYear,calMonth,i-leading+1);
+    const ds = ymd(d);
+    const act = activeFor(ds);
+    const mine = me && act.some(e=>e.userId===me.id);
+    const cls = 'day'+(d.getMonth()===calMonth?'':' other')+(ds===today?' today':'')+(act.length?' has':'')+(mine?' mine':'');
+    html += `<div class="${cls}" onclick="openDay('${ds}')"><b>${d.getDate()}</b>${act.length?`<small>${act.length}</small>`:''}</div>`;
+  }
+  document.getElementById('grid').innerHTML = html;
+}
+window.changeMonth = delta => {
+  calMonth += delta;
+  if(calMonth<0){calMonth=11;calYear--}
+  if(calMonth>11){calMonth=0;calYear++}
+  renderCalendar(); subscribeMonth();
+};
+
+// ─── WIDOK DNIA ───
+window.openDay = ds => { selDate = ds; renderDay(); document.getElementById('day-overlay').classList.add('show'); };
+window.closeDay = () => document.getElementById('day-overlay').classList.remove('show');
+
+function fmtDate(ds){
+  const [y,m,d]=ds.split('-').map(Number);
+  const dni=['niedziela','poniedziałek','wtorek','środa','czwartek','piątek','sobota'];
+  const mies=['stycznia','lutego','marca','kwietnia','maja','czerwca','lipca','sierpnia','września','października','listopada','grudnia'];
+  return `${d} ${mies[m-1]} ${y} (${dni[new Date(y,m-1,d).getDay()]})`;
+}
+function fmtTs(iso){
+  if(!iso) return '';
+  const d=new Date(iso); if(isNaN(d)) return '';
+  return d.toLocaleString('pl-PL',{day:'numeric',month:'numeric',hour:'2-digit',minute:'2-digit'});
+}
+
+const isAdmin = () => me && me.id === ADMIN_ID;
+const isManager = () => me && (me.id === ADMIN_ID || me.id === MANAGER_ID);   // może dodawać/wypisywać każdego
+function renderDay(){
+  if(!selDate) return;
+  const admin = isAdmin();
+  const mgr = isManager();
+  const sections = SHIFTS.map(s=>{
+    const list = entriesFor(selDate, s.key);
+    const active = list.filter(e=>!e.removed);
+    const myActive = active.find(e=>e.userId===me.id);
+    const items = list.map(e=>{
+      const isMine = e.userId===me.id;
+      const canNote = isMine && !e.removed;                 // notatkę edytuje tylko jej autor
+      const canRemove = (isMine || mgr) && !e.removed;
+      let meta = 'dodano '+fmtTs(e.createdAt);
+      if(e.addedBy && e.addedBy!==e.name) meta += ' przez '+esc(e.addedBy);
+      if(e.removed) meta += ' · wypisano '+fmtTs(e.removedAt);
+      const delBtn = admin ? `<button class="btn btn-x" onclick="adminDelete('${e.id}')">Usuń bez śladu</button>` : '';
+      return `<div class="entry${isMine?' mine':''}${e.removed?' removed':''}">
+        <div class="nm">${esc(e.name)}</div>
+        ${canNote
+          ? `<textarea rows="2" id="note-${e.id}" placeholder="Notatka (opcjonalnie)…">${esc(e.note||'')}</textarea>`
+          : (e.note?`<div class="note">${esc(e.note)}</div>`:'')}
+        ${(canNote||canRemove||delBtn)
+          ? `<div class="row">${canNote?`<button class="btn btn-p" onclick="saveNote('${e.id}')">Zapisz notatkę</button>`:''}${canRemove?`<button class="btn btn-d" onclick="removeMe('${e.id}')">${isMine?'Wypisz mnie':'Wypisz'}</button>`:''}${delBtn}</div>`:''}
+        <div class="meta">${meta}</div>
+      </div>`;
+    }).join('');
+    const adminAdd = mgr ? `<div class="admin-box">
+        <select id="adm-sel-${s.key}">${USERS.map(u=>`<option value="${u.id}"${active.some(e=>e.userId===u.id)?' disabled':''}>${esc(u.name)}${active.some(e=>e.userId===u.id)?' (już wpisany/a)':''}</option>`).join('')}</select>
+        <button class="btn btn-o" onclick="adminAdd('${s.key}')">＋ Dodaj wybraną osobę</button>
+      </div>` : '';
+    return `<div class="shift">
+      <div class="shift-h"><strong>${s.label}</strong><span>${active.length?active.length+' os.':'brak'}</span></div>
+      ${items || '<div class="none">Nikt się jeszcze nie zapisał</div>'}
+      ${myActive ? '' : `<button class="btn btn-g" onclick="addMe('${s.key}')">＋ Zapisz mnie</button>`}
+      ${adminAdd}
+    </div>`;
+  }).join('');
+  document.getElementById('day-content').innerHTML = `
+    <h2>${fmtDate(selDate)}</h2>
+    <div class="sub">${admin?'Jako administrator możesz dodawać, wypisywać i usuwać każdego.':mgr?'Możesz dodawać i wypisywać każdego. Wypisane osoby zostają widoczne jako przekreślone.':'Edytować możesz tylko własne wpisy. Wypisane osoby zostają widoczne jako przekreślone.'}</div>
+    ${sections}
+    ${admin?`<button class="btn btn-x" style="width:100%;margin-bottom:.5rem" onclick="adminWipeDay()">Usuń wszystko z tego dnia (bez śladu)</button>`:''}
+    <button class="btn btn-l" style="width:100%" onclick="closeDay()">Zamknij</button>`;
+}
+
+// ─── AKCJE ───
+window.addMe = async shift => {
+  if(entriesFor(selDate,shift).some(e=>e.userId===me.id && !e.removed)) return;
+  const id = uid();
+  const rec = {id,date:selDate,shift,userId:me.id,name:me.name,note:'',removed:false,createdAt:new Date().toISOString(),addedBy:me.name};
+  entries[id]=rec; renderDay(); renderCalendar();           // natychmiastowa reakcja
+  try{ await setDoc(doc(db,COL,id),rec); toast('Zapisano ✓'); }
+  catch(e){ delete entries[id]; renderDay(); renderCalendar(); toast('Błąd zapisu — sprawdź połączenie'); }
+};
+window.removeMe = async id => {
+  const e = entries[id]; if(!e || (e.userId!==me.id && !isManager())) return;
+  const patch = {removed:true,removedAt:new Date().toISOString()};
+  try{ await updateDoc(doc(db,COL,id),patch); toast('Wypisano'); }
+  catch(err){ toast('Błąd — sprawdź połączenie'); }
+};
+window.saveNote = async id => {
+  const e = entries[id]; if(!e || e.userId!==me.id) return;
+  const note = document.getElementById('note-'+id).value.trim();
+  try{ await updateDoc(doc(db,COL,id),{note}); toast('Notatka zapisana ✓'); }
+  catch(err){ toast('Błąd — sprawdź połączenie'); }
+};
+
+// ─── ADMIN ───
+window.adminAdd = async shift => {
+  if(!isManager()) return;
+  const userId = document.getElementById('adm-sel-'+shift).value;
+  const u = USERS.find(x=>x.id===userId); if(!u) return;
+  if(entriesFor(selDate,shift).some(e=>e.userId===u.id && !e.removed)){ toast('Ta osoba już jest wpisana'); return; }
+  const id = uid();
+  const rec = {id,date:selDate,shift,userId:u.id,name:u.name,note:'',removed:false,createdAt:new Date().toISOString(),addedBy:me.name};
+  entries[id]=rec; renderDay(); renderCalendar();
+  try{ await setDoc(doc(db,COL,id),rec); toast('Dodano: '+u.name); }
+  catch(e){ delete entries[id]; renderDay(); renderCalendar(); toast('Błąd zapisu'); }
+};
+window.adminDelete = async id => {
+  if(!isAdmin()) return;
+  const bak = entries[id]; delete entries[id]; renderDay(); renderCalendar();
+  try{ await deleteDoc(doc(db,COL,id)); toast('Usunięto bez śladu'); }
+  catch(e){ entries[id]=bak; renderDay(); renderCalendar(); toast('Błąd usuwania'); }
+};
+async function deleteMany(ids){
+  for(let i=0;i<ids.length;i+=400){
+    const batch = writeBatch(db);
+    ids.slice(i,i+400).forEach(id=>batch.delete(doc(db,COL,id)));
+    await batch.commit();
+  }
+}
+window.adminWipeDay = async () => {
+  if(!isAdmin()) return;
+  const ids = Object.values(entries).filter(e=>e.date===selDate).map(e=>e.id);
+  if(!ids.length){ toast('Ten dzień jest pusty'); return; }
+  if(!confirm(`Usunąć bez śladu ${ids.length} wpisów z dnia ${selDate}?`)) return;
+  try{ await deleteMany(ids); toast('Dzień wyczyszczony'); }catch(e){ toast('Błąd usuwania'); }
+};
+window.adminWipeMonth = async () => {
+  if(!isAdmin()) return;
+  const prefix = `${calYear}-${pad2(calMonth+1)}-`;
+  const ids = Object.values(entries).filter(e=>e.date.startsWith(prefix)).map(e=>e.id);
+  if(!ids.length){ toast('Ten miesiąc jest pusty'); return; }
+  if(!confirm(`Usunąć bez śladu ${ids.length} wpisów z całego miesiąca (${prefix.slice(0,7)})?`)) return;
+  try{ await deleteMany(ids); toast('Miesiąc wyczyszczony'); }catch(e){ toast('Błąd usuwania'); }
+};
+window.adminWipeAll = async () => {
+  if(!isAdmin()) return;
+  if(!confirm('Usunąć WSZYSTKIE dyżury ze wszystkich miesięcy? Tego nie da się cofnąć.')) return;
+  try{
+    const snap = await getDocs(collection(db,COL));
+    const ids = []; snap.forEach(d=>ids.push(d.id));
+    await deleteMany(ids);
+    toast(`Usunięto wszystko (${ids.length})`);
+  }catch(e){ toast('Błąd usuwania'); }
+};
+
+document.getElementById('day-overlay').addEventListener('click',e=>{ if(e.target.id==='day-overlay') closeDay(); });
+
+// ─── START PO ZALOGOWANIU ───
+function start(user){
+  me = user;
+  document.getElementById('user-badge').textContent = '👤 '+me.name;
+  document.getElementById('pin-screen').style.display='none';
+  document.getElementById('admin-bar').classList.toggle('show', isAdmin());
+  renderCalendar(); subscribeMonth();
+}
+window.addEventListener('dyzury-login', e=>start(e.detail));
+if(window.__dyzuryPendingLogin) start(window.__dyzuryPendingLogin);
+</script>
+
+<script>
+(function(){
+  const USERS = [
+    {id:"u1",name:"Beata Makowska",hash:"b768aebb73b7ba303744f94589009a8dee43a54a411abb11cf68b6c35f35ff41"},
+    {id:"u2",name:"Beata Siemieńska",hash:"5e42002668a48c93bd20f658106f96c8ee6ddfb41f4dc37252b5cbc0fbd21146"},
+    {id:"u3",name:"Damian Szank",hash:"e6ec3ee57bc5af329b92e8157284f5c1c708e1e7e433f6a2fbb1c8245685d164"},
+    {id:"u4",name:"Emilia Wawrowska",hash:"b781191d86dbb2110f5e5bcf0f98e39e74feff66b7ccabef48cbe1bbbf608305"},
+    {id:"u5",name:"Grzegorz Wiśniewski",hash:"dbb5bd64916b0742bc1527fe93535d9c6b27c0e31f64ece65e96d8f6d7382eac"},
+    {id:"u6",name:"Jagoda Czarnota",hash:"850622a3ca98952f38666870e57e74499b7e8bb3437501e0bdc2e170f41baee8"},
+    {id:"u7",name:"Kasia Labuda",hash:"5e68fbcc1e79b61ff04454a51afc842e335c58ae7c96f15a8d4540ad470b21bd"},
+    {id:"u8",name:"Magdalena Wodzik",hash:"f882d72f94a630bf542397233d901a13fe02c671756dbca9ba6dfd7f375f858a"},
+    {id:"u9",name:"Monika Pstrong",hash:"bb1f648fc4f0f90167e2194b3b76f83074b1d13a8a6b75606803bc560e7fdaf0"},
+    {id:"u10",name:"Ola Prorok",hash:"8bb3d786edaa9922aaefe2bf51f9ac4dc23e590ed3c8555ac895614f94633b29"},
+    {id:"u11",name:"Patrycja Cherek",hash:"08391494ccc44956aa4f78146c3513b6967c2388b7745bb285456d984f6d14c2"}
+  ];
+  const LEN=4, KEY='dyzury_user';
+  let entered='';
+
+  async function sha256Hex(t){
+    const d=await crypto.subtle.digest('SHA-256',new TextEncoder().encode(t));
+    return Array.from(new Uint8Array(d)).map(b=>b.toString(16).padStart(2,'0')).join('');
+  }
+  function login(u){
+    window.__dyzuryPendingLogin=u;
+    window.dispatchEvent(new CustomEvent('dyzury-login',{detail:u}));
+  }
+  // zapamiętane logowanie (sessionStorage — do zamknięcia karty)
+  try{
+    const saved=sessionStorage.getItem(KEY);
+    if(saved){const u=USERS.find(x=>x.id===saved); if(u){login({id:u.id,name:u.name});}}
+  }catch(e){}
+
+  function dots(){for(let i=0;i<LEN;i++)document.getElementById('pd'+i).classList.toggle('filled',i<entered.length)}
+  window.pinKey=function(k){
+    if(entered.length>=LEN)return;
+    entered+=k;dots();
+    if(entered.length===LEN)verify();
+  };
+  window.pinDel=function(){
+    entered=entered.slice(0,-1);dots();
+    document.getElementById('pin-error').textContent='';
+    document.querySelectorAll('.pin-dot').forEach(d=>d.classList.remove('error'));
+  };
+  async function verify(){
+    const h=await sha256Hex('dyzury:'+entered);
+    const u=USERS.find(x=>x.hash===h);
+    if(u){
+      try{sessionStorage.setItem(KEY,u.id)}catch(e){}
+      entered='';dots();
+      login({id:u.id,name:u.name});
+    } else {
+      document.querySelectorAll('.pin-dot').forEach(d=>d.classList.add('error'));
+      document.getElementById('pin-error').textContent='Nieprawidłowy PIN';
+      setTimeout(()=>{
+        entered='';dots();
+        document.querySelectorAll('.pin-dot').forEach(d=>d.classList.remove('error'));
+        document.getElementById('pin-error').textContent='';
+      },900);
+    }
+  }
+  window.logout=function(){
+    try{sessionStorage.removeItem(KEY)}catch(e){}
+    location.reload();
+  };
+})();
+</script>
+</body>
+</html>
