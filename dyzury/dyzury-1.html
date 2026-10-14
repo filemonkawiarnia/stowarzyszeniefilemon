@@ -6,7 +6,16 @@
 <meta name="theme-color" content="#0F5C5A">
 <title>Dyżury</title>
 <style>
-:root{--navy:#0F5C5A;--green:#2F9E62;--red:#D64545;--yellow:#E0A030;--bg:#F5F0E6;--text:#1F2D2B;--muted:#7C8A86;--border:rgba(31,45,43,.13);--accent:#E0714B}
+::root {
+  --navy: #2C3E6A;
+  --green: #1DB96A;
+  --red: #E84040;
+  --yellow: #F5A623;
+  --bg: #F0EDF8;
+  --text: #1B2A4A;
+  --muted: #7A8AAA;
+  --border: rgba(27,42,74,.12);
+}
 *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
 body{font-family:-apple-system,'Helvetica Neue',Arial,sans-serif;background:var(--bg);color:var(--text);min-height:100vh;padding-bottom:3rem}
 header{background:linear-gradient(135deg,#0F5C5A,#0A3F44);color:#fff;padding:.9rem 1rem;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:50;box-shadow:0 2px 16px rgba(0,0,0,.2)}
@@ -84,12 +93,12 @@ textarea:focus{outline:none;border-color:var(--navy)}
 <body>
 
 <header>
-  <h1>🗓️ Dyżury</h1>
+  <h1>Dyżury</h1>
   <div id="user-badge" onclick="logout()" title="Kliknij, aby się wylogować"></div>
 </header>
 
 <div class="admin-bar" id="admin-bar">
-  <b>🛠 Tryb administratora (testy)</b>
+  <b>Tryb administratora</b>
   <div class="row">
     <button class="btn btn-x" onclick="adminWipeMonth()">Usuń cały miesiąc</button>
     <button class="btn btn-d" onclick="adminWipeAll()">Usuń WSZYSTKO</button>
@@ -116,8 +125,8 @@ textarea:focus{outline:none;border-color:var(--navy)}
 
 <!-- PIN -->
 <div class="pin-screen" id="pin-screen">
-  <div class="pin-title">Dyżury</div>
-  <div class="pin-sub">Wpisz swój 4-cyfrowy PIN</div>
+  <div class="pin-title"> </div>
+  <div class="pin-sub"> </div>
   <div class="pin-dots">
     <div class="pin-dot" id="pd0"></div><div class="pin-dot" id="pd1"></div>
     <div class="pin-dot" id="pd2"></div><div class="pin-dot" id="pd3"></div>
@@ -163,12 +172,12 @@ const USERS = [
   {id:"u11",name:"Patrycja Cherek",hash:"08391494ccc44956aa4f78146c3513b6967c2388b7745bb285456d984f6d14c2"}
 ];
 const SHIFTS = [
-  {key:'rano', label:'🌅 Rano'},
-  {key:'popoludnie', label:'☀️ Popołudnie'},
-  {key:'wieczor', label:'🌙 Wieczór'}
+  {key:'rano', label:'Rano'},
+  {key:'popoludnie', label:'Popołudnie'},
+  {key:'wieczor', label:'Wieczór'}
 ];
 
-const ADMIN_ID = 'u5';          // Grzegorz Wiśniewski — pełny admin (też usuwanie bez śladu)
+const ADMIN_ID = 'u5';          // 
 const MANAGER_ID = 'u10';       // Ola Prorok — dodaje i wypisuje wszystkich
 let me = null;                 // {id,name}
 let entries = {};              // id -> wpis (bieżący miesiąc)
