@@ -86,12 +86,12 @@ textarea:focus{outline:none;border-color:var(--navy)}
 <body>
 
 <header>
-  <h1>🗓️ Dyżury</h1>
+  <h1>Dyżury</h1>
   <div id="user-badge" onclick="logout()" title="Kliknij, aby się wylogować"></div>
 </header>
 
 <div class="admin-bar" id="admin-bar">
-  <b>🛠 Tryb administratora (testy)</b>
+  <b>Tryb admin</b>
   <div class="row">
     <button class="btn btn-x" onclick="adminWipeMonth()">Usuń cały miesiąc</button>
     <button class="btn btn-d" onclick="adminWipeAll()">Usuń WSZYSTKO</button>
@@ -118,8 +118,8 @@ textarea:focus{outline:none;border-color:var(--navy)}
 
 <!-- PIN -->
 <div class="pin-screen" id="pin-screen">
-  <div class="pin-title">Dyżury</div>
-  <div class="pin-sub">Wpisz swój 4-cyfrowy PIN</div>
+  <div class="pin-title"> </div>
+  <div class="pin-sub"> </div>
   <div class="pin-dots">
     <div class="pin-dot" id="pd0"></div><div class="pin-dot" id="pd1"></div>
     <div class="pin-dot" id="pd2"></div><div class="pin-dot" id="pd3"></div>
@@ -165,9 +165,9 @@ const USERS = [
   {id:"u11",name:"Patrycja Cherek",hash:"08391494ccc44956aa4f78146c3513b6967c2388b7745bb285456d984f6d14c2"}
 ];
 const SHIFTS = [
-  {key:'rano', label:'🌅 Rano'},
-  {key:'popoludnie', label:'☀️ Popołudnie'},
-  {key:'wieczor', label:'🌙 Wieczór'}
+  {key:'rano', label:'Rano'},
+  {key:'popoludnie', label:'Popołudnie'},
+  {key:'wieczor', label:'Wieczór'}
 ];
 
 const ADMIN_ID = 'u5';          // Grzegorz Wiśniewski — pełny admin (też usuwanie bez śladu)
