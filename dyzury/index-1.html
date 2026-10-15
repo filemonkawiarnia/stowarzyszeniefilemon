@@ -374,7 +374,7 @@ function renderDay(){
              <button class="btn btn-o" onclick="adminAdd('${s.key}')">＋ Dodaj wybraną osobę</button>`
           : '<div class="none" style="padding:0">Wszystkie osoby są już wpisane na tę porę.</div>'}
       </div>` : '';
-    const btns = locked ? `<div class="lock-note">🔒 Zapisy na tę porę są zamknięte.</div>` : `<div class="row">${myActive ? '' : `<button class="btn btn-g" onclick="addMe('${s.key}')">＋ Zapisz mnie</button>`}${mgr ? `<button class="btn btn-add${addOpen?' open':''}" onclick="toggleAdd('${s.key}')">👤 Dodaj osobę ${addOpen?'▴':'▾'}</button>` : ''}</div>`;
+    const btns = locked ? `<div class="lock-note"> </div>` : `<div class="row">${myActive ? '' : `<button class="btn btn-g" onclick="addMe('${s.key}')">＋ Zapisz mnie</button>`}${mgr ? `<button class="btn btn-add${addOpen?' open':''}" onclick="toggleAdd('${s.key}')">👤 Dodaj osobę ${addOpen?'▴':'▾'}</button>` : ''}</div>`;
     return `<div class="shift${locked?' locked':''}">
       <div class="shift-h"><strong>${s.label}</strong><span>${active.length?active.length+' os.':'brak'}</span></div>
       ${items || '<div class="none">Nikt się jeszcze nie zapisał</div>'}
@@ -477,7 +477,7 @@ document.getElementById('day-overlay').addEventListener('click',e=>{ if(e.target
 // ─── START PO ZALOGOWANIU ───
 function start(user){
   me = user;
-  document.getElementById('user-badge').textContent = '👤 '+me.name;
+  document.getElementById('user-badge').textContent = '🐈 '+me.name;
   document.getElementById('pin-screen').style.display='none';
   adminMode = false;
   syncAdminUI();
