@@ -405,7 +405,7 @@ function renderDay(){
   }).join('');
   document.getElementById('day-content').innerHTML = `
     <div class="day-nav"><button onclick="shiftDay(-1)" aria-label="Poprzedni dzień">‹</button><h2>${fmtDate(selDate)}</h2><button onclick="shiftDay(1)" aria-label="Następny dzień">›</button></div>
-    <div class="sub" style="text-align:center">${admin?'Jako administrator możesz dodawać, wypisywać i usuwać każdego.':mgr?'Możesz dodawać i wypisywać każdego. Wypisane osoby zostają widoczne jako przekreślone.':'Edytować możesz tylko własne wpisy.'}</div>
+    <div class="sub" style="text-align:center">${admin?'Jako administrator możesz dodawać, wypisywać i usuwać każdego.':mgr?'Możesz dodawać i wypisywać każdego. Wypisane osoby zostają widoczne jako przekreślone.':' '}</div>
     ${sections}
     ${admin?`<button class="btn btn-x" style="width:100%;margin-bottom:.5rem" onclick="adminWipeDay()">Usuń wszystko z tego dnia (bez śladu)</button>`:''}
     <button class="btn btn-l" style="width:100%" onclick="closeDay()">Zamknij</button>`;
