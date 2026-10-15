@@ -320,7 +320,7 @@ function fmtTs(iso){
 
 let adminMode = false;   // domyślnie wyłączony — Grzegorz ma wtedy widok zwykłego użytkownika
 const isAdmin = () => !!me && me.id === ADMIN_ID && adminMode;
-const CUTOFF = {rano:13, popoludnie:17, wieczor:21};   // godzina, od której zapisy na porę dzisiaj są zamknięte
+const CUTOFF = {rano:12, popoludnie:14, wieczor:18};   // godzina, od której zapisy na porę dzisiaj są zamknięte
 // Czy edycja danej pory w danym dniu jest zablokowana (dla nie-admina)
 function isLocked(date, shift){
   if(isAdmin()) return false;
