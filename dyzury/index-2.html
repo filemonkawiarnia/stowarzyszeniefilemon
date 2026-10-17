@@ -406,7 +406,7 @@ const openNotes = new Set();   // które notatki są rozwinięte
 const noteDrafts = {};         // niezapisany tekst (przetrwa odświeżenie widoku)
 let adminMode = false;   // domyślnie wyłączony — Grzegorz ma wtedy widok zwykłego użytkownika
 const isAdmin = () => !!me && me.id === ADMIN_ID && adminMode;
-const CUTOFF = {rano:12, popoludnie:14, wieczor:18};   // godzina, od której zapisy na porę dzisiaj są zamknięte
+const CUTOFF = {rano:8, popoludnie:12, wieczor:16};   // godzina, od której zapisy na porę dzisiaj są zamknięte
 // Czy edycja danej pory w danym dniu jest zablokowana (dla nie-admina)
 function isLocked(date, shift){
   if(isAdmin()) return false;
@@ -422,14 +422,14 @@ function syncAdminUI(){
   const can = !!me && me.id === ADMIN_ID;
   btn.classList.toggle('avail', can);
   btn.classList.toggle('on', can && adminMode);
-  btn.textContent = adminMode ? '🔓 Admin: wł.' : '🔒 Admin: wył.';
+  btn.textContent = adminMode ? '🔓 Ad: wł.' : '🔒 Ad: wył.';
   document.getElementById('admin-bar').classList.toggle('show', isAdmin());
 }
 window.toggleAdminMode = () => {
   if(!me || me.id !== ADMIN_ID) return;
   adminMode = !adminMode;
   syncAdminUI(); renderDay(); renderCalendar();
-  toast(adminMode ? 'Tryb admina włączony' : 'Tryb admina wyłączony');
+  toast(adminMode ? 'Admin wł' : 'Admin wył');
 };   // może dodawać/wypisywać każdego
 function renderDay(){
   if(!selDate) return;
