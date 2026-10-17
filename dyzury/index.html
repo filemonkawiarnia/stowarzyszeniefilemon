@@ -196,17 +196,17 @@ const COL = 'dyzury';
 
 // Skróty SHA-256 ("dyzury:" + PIN) — PIN-y nie leżą w kodzie jawnym.
 const USERS = [
-  {id:"u1",name:"Beata Makowska",hash:"0378924c08620ae18151fc4a3e6ae3a9e9b43b10f5d6308306cbced3f8527bf0"},
-  {id:"u2",name:"Beata Siemieńska",hash:"5e42002668a48c93bd20f658106f96c8ee6ddfb41f4dc37252b5cbc0fbd21146"},
-  {id:"u3",name:"Damian Szank",hash:"e6ec3ee57bc5af329b92e8157284f5c1c708e1e7e433f6a2fbb1c8245685d164"},
-  {id:"u4",name:"Emilia Wawrowska",hash:"60daf87f871fde131470ca83180764bf6bcf540bac83e785ca90d9c5b0718cae"},
-  {id:"u5",name:"Grzegorz Wiśniewski",hash:"5cccb8422e93cccd919d3e9b96d742e92ecf1b8a36f030a97c4cdc36fb3c9d82"},
-  {id:"u6",name:"Jagoda Czarnota",hash:"850622a3ca98952f38666870e57e74499b7e8bb3437501e0bdc2e170f41baee8"},
-  {id:"u7",name:"Kasia Labuda",hash:"5e68fbcc1e79b61ff04454a51afc842e335c58ae7c96f15a8d4540ad470b21bd"},
-  {id:"u8",name:"Magdalena Wodzik",hash:"f882d72f94a630bf542397233d901a13fe02c671756dbca9ba6dfd7f375f858a"},
-  {id:"u9",name:"Monika Pstrong",hash:"bb1f648fc4f0f90167e2194b3b76f83074b1d13a8a6b75606803bc560e7fdaf0"},
-  {id:"u10",name:"Ola Prorok",hash:"42a69ef6abff3ddddb7b46b6a37048f71be835baef99a3e3929e1285d0ea21b8"},
-  {id:"u11",name:"Patrycja Cherek",hash:"08391494ccc44956aa4f78146c3513b6967c2388b7745bb285456d984f6d14c2"}
+  {id:"u1",name:"Beata M",hash:"0378924c08620ae18151fc4a3e6ae3a9e9b43b10f5d6308306cbced3f8527bf0"},
+  {id:"u2",name:"Beata S",hash:"5e42002668a48c93bd20f658106f96c8ee6ddfb41f4dc37252b5cbc0fbd21146"},
+  {id:"u3",name:"Damian",hash:"e6ec3ee57bc5af329b92e8157284f5c1c708e1e7e433f6a2fbb1c8245685d164"},
+  {id:"u4",name:"Emilia",hash:"60daf87f871fde131470ca83180764bf6bcf540bac83e785ca90d9c5b0718cae"},
+  {id:"u5",name:"Grzegorz",hash:"5cccb8422e93cccd919d3e9b96d742e92ecf1b8a36f030a97c4cdc36fb3c9d82"},
+  {id:"u6",name:"Jagoda",hash:"850622a3ca98952f38666870e57e74499b7e8bb3437501e0bdc2e170f41baee8"},
+  {id:"u7",name:"Kasia",hash:"5e68fbcc1e79b61ff04454a51afc842e335c58ae7c96f15a8d4540ad470b21bd"},
+  {id:"u8",name:"Magda",hash:"f882d72f94a630bf542397233d901a13fe02c671756dbca9ba6dfd7f375f858a"},
+  {id:"u9",name:"Monika",hash:"bb1f648fc4f0f90167e2194b3b76f83074b1d13a8a6b75606803bc560e7fdaf0"},
+  {id:"u10",name:"Ola",hash:"42a69ef6abff3ddddb7b46b6a37048f71be835baef99a3e3929e1285d0ea21b8"},
+  {id:"u11",name:"Patrycja",hash:"08391494ccc44956aa4f78146c3513b6967c2388b7745bb285456d984f6d14c2"}
 ];
 const SHIFTS = [
   {key:'rano', label:'Rano'},
@@ -591,17 +591,17 @@ if(window.__dyzuryPendingLogin) start(window.__dyzuryPendingLogin);
 <script>
 (function(){
   const USERS = [
-    {id:"u1",name:"Beata Makowska",hash:"0378924c08620ae18151fc4a3e6ae3a9e9b43b10f5d6308306cbced3f8527bf0"},
-    {id:"u2",name:"Beata Siemieńska",hash:"5e42002668a48c93bd20f658106f96c8ee6ddfb41f4dc37252b5cbc0fbd21146"},
-    {id:"u3",name:"Damian Szank",hash:"e6ec3ee57bc5af329b92e8157284f5c1c708e1e7e433f6a2fbb1c8245685d164"},
-    {id:"u4",name:"Emilia Wawrowska",hash:"60daf87f871fde131470ca83180764bf6bcf540bac83e785ca90d9c5b0718cae"},
-    {id:"u5",name:"Grzegorz Wiśniewski",hash:"5cccb8422e93cccd919d3e9b96d742e92ecf1b8a36f030a97c4cdc36fb3c9d82"},
-    {id:"u6",name:"Jagoda Czarnota",hash:"850622a3ca98952f38666870e57e74499b7e8bb3437501e0bdc2e170f41baee8"},
-    {id:"u7",name:"Kasia Labuda",hash:"5e68fbcc1e79b61ff04454a51afc842e335c58ae7c96f15a8d4540ad470b21bd"},
-    {id:"u8",name:"Magdalena Wodzik",hash:"f882d72f94a630bf542397233d901a13fe02c671756dbca9ba6dfd7f375f858a"},
-    {id:"u9",name:"Monika Pstrong",hash:"bb1f648fc4f0f90167e2194b3b76f83074b1d13a8a6b75606803bc560e7fdaf0"},
-    {id:"u10",name:"Ola Prorok",hash:"42a69ef6abff3ddddb7b46b6a37048f71be835baef99a3e3929e1285d0ea21b8"},
-    {id:"u11",name:"Patrycja Cherek",hash:"08391494ccc44956aa4f78146c3513b6967c2388b7745bb285456d984f6d14c2"}
+    {id:"u1",name:"Beata M",hash:"0378924c08620ae18151fc4a3e6ae3a9e9b43b10f5d6308306cbced3f8527bf0"},
+    {id:"u2",name:"Beata S",hash:"5e42002668a48c93bd20f658106f96c8ee6ddfb41f4dc37252b5cbc0fbd21146"},
+    {id:"u3",name:"Damian",hash:"e6ec3ee57bc5af329b92e8157284f5c1c708e1e7e433f6a2fbb1c8245685d164"},
+    {id:"u4",name:"Emilia",hash:"60daf87f871fde131470ca83180764bf6bcf540bac83e785ca90d9c5b0718cae"},
+    {id:"u5",name:"Grzegorz",hash:"5cccb8422e93cccd919d3e9b96d742e92ecf1b8a36f030a97c4cdc36fb3c9d82"},
+    {id:"u6",name:"Jagoda",hash:"850622a3ca98952f38666870e57e74499b7e8bb3437501e0bdc2e170f41baee8"},
+    {id:"u7",name:"Kasia",hash:"5e68fbcc1e79b61ff04454a51afc842e335c58ae7c96f15a8d4540ad470b21bd"},
+    {id:"u8",name:"Magda",hash:"f882d72f94a630bf542397233d901a13fe02c671756dbca9ba6dfd7f375f858a"},
+    {id:"u9",name:"Monika",hash:"bb1f648fc4f0f90167e2194b3b76f83074b1d13a8a6b75606803bc560e7fdaf0"},
+    {id:"u10",name:"Ola",hash:"42a69ef6abff3ddddb7b46b6a37048f71be835baef99a3e3929e1285d0ea21b8"},
+    {id:"u11",name:"Patrycja",hash:"08391494ccc44956aa4f78146c3513b6967c2388b7745bb285456d984f6d14c2"}
   ];
   const LEN=4, KEY='dyzury_user';
   let entered='';
