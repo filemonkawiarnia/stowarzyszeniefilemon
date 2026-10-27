@@ -400,8 +400,8 @@ function renderNews(seen){
     const e = n.e, self = n.who===e.name;
     const sh = SHIFTS.find(x=>x.key===e.shift), shl = sh?sh.label.toLowerCase():esc(e.shift);
     const what = n.t==='add'
-      ? (self ? `<b>${esc(n.who)}</b> zapisał(a) się` : `<b>${esc(n.who)}</b> wpisał(a) <b>${esc(e.name)}</b>`)
-      : (self ? `<b>${esc(n.who)}</b> wypisał(a) się` : `<b>${esc(n.who)}</b> wypisał(a) <b>${esc(e.name)}</b>`);
+      ? (self ? `<b>${esc(n.who)}</b> zapisał/a się` : `<b>${esc(n.who)}</b> dodał <b>${esc(e.name)}</b>`)
+      : (self ? `<b>${esc(n.who)}</b> wypisał/a się` : `<b>${esc(n.who)}</b> usunął <b>${esc(e.name)}</b>`);
     const tag = isNewsUnread(n,seen) ? '<span class="newtag">NOWE</span>' : '';
     return `<div class="notif-item ${n.t==='rm'?'rm':''}">${tag}${what} — <b>${fmtDate(e.date)}</b>, ${shl}<div class="notif-time">${fmtTs(n.at)}</div></div>`;
   }).join('') : `<div class="notif-item" style="background:var(--bg);border-left-color:#ccc">Brak zapisów i wypisów z ostatnich ${NEWS_DAYS} dni.</div>`;
