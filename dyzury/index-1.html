@@ -1,0 +1,694 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+<meta charset="UTF-8">
+<meta name="robots" content="noindex, nofollow">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<meta name="theme-color" content="#2C3E6A">
+<title>Dyżury</title>
+<style>
+:root{--navy:#2C3E6A;--navy2:#1E2E52;--green:#1DB96A;--red:#E84040;--yellow:#F5A623;--bg:#F0EDF8;--text:#1B2A4A;--muted:#7A8AAA;--border:rgba(27,42,74,.12);--accent:#E8A73A}
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+body{font-family:-apple-system,'Helvetica Neue',Arial,sans-serif;background:var(--bg);color:var(--text);min-height:100vh;padding-bottom:3rem}
+header{background:var(--navy);color:#fff;padding:.9rem 1rem;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:50;box-shadow:0 2px 16px rgba(0,0,0,.2)}
+header h1{font-size:1.1rem;font-weight:800}
+.hdr-right{display:flex;align-items:center;gap:.5rem}
+#admin-toggle{display:none;font-family:inherit;font-size:.75rem;font-weight:700;background:transparent;color:#fff;border:1.5px solid rgba(255,255,255,.4);padding:.3rem .7rem;border-radius:20px;cursor:pointer}
+#admin-toggle.avail{display:inline-block}
+#admin-toggle.on{background:var(--accent);border-color:var(--accent);color:#1B2A4A}
+#user-badge{font-size:.75rem;font-weight:700;background:rgba(255,255,255,.15);padding:.3rem .7rem;border-radius:20px;cursor:pointer}
+.cal-nav{display:flex;align-items:center;justify-content:space-between;padding:.75rem 1rem;background:#fff;border-bottom:1px solid var(--border)}
+.cal-nav button{background:none;border:none;font-size:1.6rem;color:var(--navy);padding:.2rem .6rem;cursor:pointer}
+#month-label{font-weight:700;text-transform:capitalize}
+.weekdays,.grid{display:grid;grid-template-columns:repeat(7,1fr);background:#fff}
+.weekdays{padding:.5rem .5rem 0}
+.weekdays span{text-align:center;font-size:.68rem;font-weight:700;color:var(--muted);text-transform:uppercase}
+.grid{gap:.35rem;padding:.5rem}
+.day{aspect-ratio:1;display:flex;flex-direction:column;align-items:center;justify-content:center;border-radius:10px;background:var(--bg);cursor:pointer;border:2px solid transparent;position:relative;user-select:none}
+.day b{font-size:.9rem}
+.day small{font-size:.62rem;font-weight:700;opacity:.9}
+.day.other{opacity:.35}
+.day.past{background:#E4E3EA;color:#A3A3B0;cursor:pointer}
+.day.past.has{background:#B9C4BE;color:#fff}
+.day.past.mine::after{background:#E4E3EA;box-shadow:0 0 0 2px #A3A3B0}
+.lock-note{font-size:.72rem;color:var(--muted);margin-top:.3rem}
+.shift.locked{background:#F4F3F7}
+.day.today{background:#FFF3D9;border-color:var(--accent)}
+.day.has{background:var(--green);color:#fff}
+.day.has.today{border-color:var(--accent);box-shadow:0 0 0 2px var(--accent)}
+.day.mine::after{content:'';position:absolute;top:4px;right:4px;width:8px;height:8px;border-radius:50%;background:#fff;box-shadow:0 0 0 2px var(--navy)}
+.legend{font-size:.72rem;color:var(--muted);padding:.5rem 1rem;display:flex;gap:1rem;flex-wrap:wrap;background:#fff;border-bottom:1px solid var(--border)}
+.legend i{display:inline-block;width:10px;height:10px;border-radius:3px;margin-right:.3rem;vertical-align:middle}
+.overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:200;align-items:flex-end;justify-content:center}
+.overlay.show{display:flex}
+.sheet{background:#fff;border-radius:20px 20px 0 0;width:100%;max-width:520px;padding:1.2rem 1.2rem 2rem;max-height:92vh;overflow-y:auto}
+.handle{width:36px;height:4px;background:var(--border);border-radius:2px;margin:0 auto 1rem}
+.sheet h2{font-size:1.05rem;font-weight:800;margin-bottom:.2rem;text-transform:capitalize}
+.day-nav{display:flex;align-items:center;justify-content:space-between;gap:.5rem;margin-bottom:.2rem}.day-nav h2{flex:1;text-align:center;margin:0}.day-nav button{background:var(--bg);border:none;border-radius:50%;width:2.4rem;height:2.4rem;font-size:1.4rem;font-weight:700;color:var(--navy);cursor:pointer;line-height:1}
+.sub{font-size:.8rem;color:var(--muted);margin-bottom:1rem}
+.shift{border:1.5px solid var(--border);border-radius:14px;padding:.75rem .85rem;margin-bottom:.75rem}
+.shift-h{display:flex;justify-content:space-between;align-items:center;margin-bottom:.5rem}
+.shift-h strong{font-size:.95rem}
+.shift-h span{font-size:.72rem;color:var(--muted)}
+.entry{display:flex;flex-direction:column;gap:.25rem;padding:.45rem .6rem;border-radius:10px;background:var(--bg);margin-bottom:.4rem}
+.entry.mine{background:#DDF7E8}
+.entry .nm{font-weight:700;font-size:.9rem}
+.entry.removed .nm{text-decoration:line-through;color:var(--muted)}
+.entry.removed{opacity:.7}
+.entry .meta{font-size:.7rem;color:var(--muted)}
+.entry .note{font-size:.82rem;white-space:pre-wrap}
+.entry.removed .note{text-decoration:line-through;color:var(--muted)}
+.nm-row{display:flex;align-items:center;justify-content:space-between;gap:.5rem}
+.note-ico{border:1.5px solid var(--border);background:#fff;border-radius:8px;padding:.15rem .45rem;font-size:.9rem;cursor:pointer;line-height:1.3;position:relative;font-family:inherit}
+.note-ico.open{border-color:var(--navy);background:#eef1f8}
+.note-ico.has::after{content:'';position:absolute;top:-3px;right:-3px;width:8px;height:8px;border-radius:50%;background:var(--green)}
+.none{font-size:.8rem;color:var(--muted);padding:.2rem 0 .5rem}
+.btn{border:none;border-radius:10px;padding:.55rem .8rem;font-size:.82rem;font-weight:700;cursor:pointer;font-family:inherit}
+.btn:active{opacity:.7}
+.btn-p{background:var(--navy);color:#fff}
+.btn-g{background:var(--green);color:#fff}
+.btn-d{background:var(--red);color:#fff}
+.btn-l{background:#fff;border:1.5px solid var(--border);color:var(--text)}
+.row{display:flex;gap:.4rem;flex-wrap:wrap;margin-top:.3rem}
+textarea,input.note-in{width:100%;border:1.5px solid var(--border);border-radius:10px;padding:.5rem .65rem;font-size:.88rem;font-family:inherit;color:var(--text);resize:vertical}
+textarea:focus{outline:none;border-color:var(--navy)}
+.toast{position:fixed;bottom:1.5rem;left:50%;transform:translateX(-50%) translateY(10px);background:var(--navy);color:#fff;padding:.55rem 1.2rem;border-radius:30px;font-size:.85rem;font-weight:600;opacity:0;pointer-events:none;transition:.2s;z-index:600;white-space:nowrap}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+.pin-screen{position:fixed;inset:0;background:linear-gradient(160deg,#566AA0,#1E2E52);z-index:9999;display:flex;flex-direction:column;align-items:center;gap:1.2rem;padding-top:8vh;overflow-y:auto;padding-bottom:2rem}
+.pin-title{color:#fff;font-size:1.3rem;font-weight:800}
+.pin-sub{color:rgba(255,255,255,.6);font-size:.82rem;margin-top:-.8rem}
+.pin-dots{display:flex;gap:.8rem}
+.pin-dot{width:14px;height:14px;border-radius:50%;border:2px solid rgba(255,255,255,.4)}
+.pin-dot.filled{background:#fff;border-color:#fff}
+.pin-dot.error{background:var(--red);border-color:var(--red)}
+.pin-pad{display:grid;grid-template-columns:repeat(3,1fr);gap:.6rem;width:260px}
+.pin-btn{background:rgba(255,255,255,.1);border:none;border-radius:14px;height:64px;font-size:1.4rem;font-weight:700;color:#fff;cursor:pointer;font-family:inherit}
+.pin-btn:active{background:rgba(255,255,255,.25)}
+.pin-btn.empty{background:none;pointer-events:none}
+.pin-error{color:#ff8a8a;font-size:.82rem;font-weight:600;height:1.2rem}
+.admin-bar{display:none;background:#FFF6DC;border-bottom:2px solid var(--accent);padding:.6rem 1rem}
+.admin-bar.show{display:block}
+.admin-bar b{font-size:.78rem;color:#8A5A0F;text-transform:uppercase;letter-spacing:.06em}
+.admin-box{border:1.5px dashed var(--accent);border-radius:12px;padding:.6rem;margin-top:.5rem;background:#FFFBEF}
+.admin-box select{width:100%;border:1.5px solid var(--border);border-radius:10px;padding:.5rem;font-size:.88rem;font-family:inherit;margin-bottom:.4rem;background:#fff}
+.btn-o{background:var(--accent);color:#1B2A4A}
+.btn-add{background:#fff;border:1.5px solid var(--accent);color:#8A5A0F}
+.btn-add.open{background:#FFF3D9}
+.btn-x{background:#fff;border:1.5px solid var(--red);color:var(--red)}
+.duty-ov{display:none;position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:400;align-items:center;justify-content:center;padding:1rem}
+.duty-ov.show{display:flex}
+.duty-box{background:#fff;border-radius:20px;width:100%;max-width:340px;padding:1.6rem 1.2rem 1.2rem;text-align:center;animation:dutyPop .25s ease-out}
+.duty-ico{font-size:3rem;line-height:1;margin-bottom:.4rem}
+.duty-box h3{font-size:1.25rem;font-weight:800;margin-bottom:.4rem}
+.duty-box p{font-size:.9rem;color:var(--muted);margin-bottom:.7rem}
+.duty-shifts{display:flex;gap:.4rem;justify-content:center;flex-wrap:wrap;margin-bottom:1rem}
+.duty-shifts span{background:#DDF7E8;color:#0F7A44;font-weight:800;font-size:.85rem;padding:.3rem .8rem;border-radius:20px}
+@keyframes dutyPop{from{transform:scale(.9);opacity:0}to{transform:scale(1);opacity:1}}
+.notif-ov{display:none;position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:500;align-items:center;justify-content:center;padding:1rem}
+.notif-ov.show{display:flex}
+.notif-box{background:#fff;border-radius:18px;width:100%;max-width:400px;padding:1.2rem;max-height:85vh;overflow-y:auto}
+.notif-box h3{font-size:1.05rem;font-weight:800;margin-bottom:.7rem}
+.bell{position:relative;background:rgba(255,255,255,.15);border:none;color:#fff;border-radius:20px;padding:.25rem .6rem;font-size:1rem;cursor:pointer;display:none}
+.bell.show{display:inline-block}
+.bell .cnt{position:absolute;top:-5px;right:-5px;background:var(--red);color:#fff;font-size:.65rem;font-weight:800;min-width:1.1rem;height:1.1rem;border-radius:.6rem;padding:0 .25rem;display:none;align-items:center;justify-content:center}
+.bell .cnt.show{display:flex}
+.news-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:.7rem}.news-head h3{margin:0}.news-x{background:var(--bg);border:none;border-radius:50%;width:2rem;height:2rem;font-size:1rem;font-weight:700;color:var(--navy);cursor:pointer;line-height:1}
+.notif-time{font-size:.72rem;opacity:.65;margin-top:.15rem}
+.newtag{font-size:.65rem;font-weight:800;background:var(--navy);color:#fff;border-radius:6px;padding:.05rem .35rem;margin-right:.25rem}
+.notif-item.rm{background:#FDE6E6;border-left-color:var(--red)}
+.notif-item{background:#FFF3D9;border-left:4px solid var(--accent);border-radius:10px;padding:.55rem .7rem;margin-bottom:.5rem;font-size:.88rem;line-height:1.35}
+@media(min-width:700px){.grid{max-width:560px;margin:0 auto}.weekdays{max-width:560px;margin:0 auto}}
+</style>
+</head>
+<body>
+
+<header>
+  <h1>Dyżury</h1>
+  <div class="hdr-right">
+    <button class="bell" id="news-bell" onclick="openNews()" aria-label="Nowości">🔔<span class="cnt" id="news-cnt"></span></button>
+    <button id="admin-toggle" onclick="toggleAdminMode()">🔒 Admin: wył.</button>
+    <div id="user-badge" onclick="logout()" title="Kliknij, aby się wylogować"></div>
+  </div>
+</header>
+
+<div class="admin-bar" id="admin-bar">
+  <b>Tryb admin</b>
+  <div class="row">
+    <button class="btn btn-x" onclick="adminWipeMonth()">Usuń cały miesiąc</button>
+    <button class="btn btn-d" onclick="adminWipeAll()">Usuń WSZYSTKO</button>
+  </div>
+</div>
+<div class="cal-nav">
+  <button onclick="changeMonth(-1)">‹</button>
+  <div id="month-label"></div>
+  <button onclick="changeMonth(1)">›</button>
+</div>
+<div class="weekdays"><span>Pn</span><span>Wt</span><span>Śr</span><span>Cz</span><span>Pt</span><span>So</span><span>Nd</span></div>
+<div class="grid" id="grid"></div>
+<div class="legend">
+  <span><i style="background:var(--green)"></i>ktoś wpisany</span>
+  <span><i style="background:#FFF3D9;border:1px solid #E8A73A"></i>dziś</span>
+  <span><i style="background:#fff;box-shadow:0 0 0 2px var(--navy)"></i>jesteś wpisany/a</span>
+</div>
+
+<div class="overlay" id="day-overlay">
+  <div class="sheet"><div class="handle"></div><div id="day-content"></div></div>
+</div>
+
+<div class="notif-ov" id="news-ov" onclick="if(event.target===this)closeNews()"><div class="notif-box">
+  <div class="news-head"><h3>🔔 Nowości</h3><button class="news-x" onclick="closeNews()" aria-label="Zamknij">✕</button></div>
+  <div id="news-list"></div>
+  <button class="btn btn-p" style="width:100%;margin-top:.4rem" onclick="closeNews()">Zamknij</button>
+</div></div>
+
+<div class="duty-ov" id="duty-ov" onclick="if(event.target===this)closeDuty()"><div class="duty-box">
+  <div class="duty-ico">📅</div>
+  <h3>Masz dziś dyżur!</h3>
+  <p id="duty-date"></p>
+  <div class="duty-shifts" id="duty-shifts"></div>
+  <button class="btn btn-g" style="width:100%" onclick="closeDuty()">OK</button>
+</div></div>
+
+<div class="notif-ov" id="notif-ov"><div class="notif-box">
+  <h3>🔔 Zmiany w Twoich dyżurach</h3>
+  <div id="notif-list"></div>
+  <button class="btn btn-p" style="width:100%;margin-top:.4rem" onclick="ackNotifs()">OK</button>
+</div></div>
+
+<div class="toast" id="toast"></div>
+
+<!-- PIN -->
+<div class="pin-screen" id="pin-screen">
+  <div class="pin-title"> </div>
+  <div class="pin-sub"> </div>
+  <div class="pin-dots">
+    <div class="pin-dot" id="pd0"></div><div class="pin-dot" id="pd1"></div>
+    <div class="pin-dot" id="pd2"></div><div class="pin-dot" id="pd3"></div>
+  </div>
+  <div class="pin-error" id="pin-error"></div>
+  <div class="pin-pad">
+    <button class="pin-btn" onclick="pinKey('1')">1</button><button class="pin-btn" onclick="pinKey('2')">2</button><button class="pin-btn" onclick="pinKey('3')">3</button>
+    <button class="pin-btn" onclick="pinKey('4')">4</button><button class="pin-btn" onclick="pinKey('5')">5</button><button class="pin-btn" onclick="pinKey('6')">6</button>
+    <button class="pin-btn" onclick="pinKey('7')">7</button><button class="pin-btn" onclick="pinKey('8')">8</button><button class="pin-btn" onclick="pinKey('9')">9</button>
+    <button class="pin-btn empty"></button><button class="pin-btn" onclick="pinKey('0')">0</button><button class="pin-btn" onclick="pinDel()">⌫</button>
+  </div>
+</div>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-app.js";
+import { getFirestore, collection, doc, setDoc, updateDoc, deleteDoc, getDocs, writeBatch, onSnapshot, query, where }
+  from "https://www.gstatic.com/firebasejs/12.15.0/firebase-firestore.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyBOGm3N-8zPtjvVv7hx1F-jqFpBU-dD7RY",
+  authDomain: "rezerwacja-af82e.firebaseapp.com",
+  projectId: "rezerwacja-af82e",
+  storageBucket: "rezerwacja-af82e.firebasestorage.app",
+  messagingSenderId: "316318620114",
+  appId: "1:316318620114:web:453d19957ab0af4f8b100b"
+};
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+const COL = 'dyzury';
+
+// Skróty SHA-256 ("dyzury:" + PIN) — PIN-y nie leżą w kodzie jawnym.
+const USERS = [
+  {id:"u1",name:"Beata M",hash:"0378924c08620ae18151fc4a3e6ae3a9e9b43b10f5d6308306cbced3f8527bf0"},
+  {id:"u2",name:"Beata S",hash:"5e42002668a48c93bd20f658106f96c8ee6ddfb41f4dc37252b5cbc0fbd21146"},
+  {id:"u3",name:"Damian",hash:"e6ec3ee57bc5af329b92e8157284f5c1c708e1e7e433f6a2fbb1c8245685d164"},
+  {id:"u4",name:"Emilia",hash:"60daf87f871fde131470ca83180764bf6bcf540bac83e785ca90d9c5b0718cae"},
+  {id:"u5",name:"Grzegorz",hash:"5cccb8422e93cccd919d3e9b96d742e92ecf1b8a36f030a97c4cdc36fb3c9d82"},
+  {id:"u6",name:"Jagoda",hash:"850622a3ca98952f38666870e57e74499b7e8bb3437501e0bdc2e170f41baee8"},
+  {id:"u7",name:"Kasia",hash:"5e68fbcc1e79b61ff04454a51afc842e335c58ae7c96f15a8d4540ad470b21bd"},
+  {id:"u8",name:"Magda",hash:"f882d72f94a630bf542397233d901a13fe02c671756dbca9ba6dfd7f375f858a"},
+  {id:"u9",name:"Monika",hash:"bb1f648fc4f0f90167e2194b3b76f83074b1d13a8a6b75606803bc560e7fdaf0"},
+  {id:"u10",name:"Ola",hash:"42a69ef6abff3ddddb7b46b6a37048f71be835baef99a3e3929e1285d0ea21b8"},
+  {id:"u11",name:"Patrycja",hash:"08391494ccc44956aa4f78146c3513b6967c2388b7745bb285456d984f6d14c2"}
+];
+const SHIFTS = [
+  {key:'rano', label:'Rano'},
+  {key:'popoludnie', label:'Popołudnie'},
+  {key:'wieczor', label:'Wieczór'}
+];
+
+const ADMIN_ID = 'u5';          // Grzegorz Wiśniewski — pełny admin (też usuwanie bez śladu)
+const VIEWER_ID = 'u3';         // Damian Szank — tylko podgląd dzwonka (Nowości) i godzin dodania, bez edycji
+const MANAGER_ID = 'u10';       // Ola Prorok — dodaje i wypisuje wszystkich
+let me = null;                 // {id,name}
+let entries = {};              // id -> wpis (bieżący miesiąc)
+let selDate = null;
+const openAdd = new Set();    // pory z rozwiniętą listą "Dodaj osobę"
+const now = new Date();
+let calYear = now.getFullYear(), calMonth = now.getMonth();
+let unsub = null;
+
+const pad2 = n => n<10 ? '0'+n : ''+n;
+const ymd = d => d.getFullYear()+'-'+pad2(d.getMonth()+1)+'-'+pad2(d.getDate());
+const todayStr = () => ymd(new Date());
+const uid = () => Date.now().toString(36)+Math.random().toString(36).slice(2,6);
+const esc = s => String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+window.toast = msg => {const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),2300)};
+
+// ─── DANE ───
+function subscribeMonth(){
+  if(unsub) unsub();
+  const start = `${calYear}-${pad2(calMonth+1)}-01`;
+  const end = `${calYear}-${pad2(calMonth+1)}-${pad2(new Date(calYear,calMonth+1,0).getDate())}`;
+  // Pobieramy trochę szerszy zakres (dni z sąsiednich miesięcy widoczne w siatce)
+  const s = new Date(calYear,calMonth,1); s.setDate(s.getDate()-7);
+  const e = new Date(calYear,calMonth+1,0); e.setDate(e.getDate()+7);
+  const q = query(collection(db,COL), where('date','>=',ymd(s)), where('date','<=',ymd(e)));
+  unsub = onSnapshot(q, snap=>{
+    entries = {};
+    snap.forEach(d => entries[d.id] = d.data());
+    renderCalendar();
+    if(document.getElementById('day-overlay').classList.contains('show')) renderDay();
+  }, err=>{ console.error(err); toast('Błąd połączenia z bazą'); });
+}
+const entriesFor = (date, shift) =>
+  Object.values(entries).filter(e=>e.date===date && (!shift || e.shift===shift))
+        .sort((a,b)=>(a.createdAt||'').localeCompare(b.createdAt||''));
+const activeFor = date => Object.values(entries).filter(e=>e.date===date && !e.removed);
+
+// ─── POWIADOMIENIA O WPISANIU PRZEZ INNĄ OSOBĘ ───
+let unsubNotif = null;
+let pendingNotifs = [];
+const ackedLocal = new Set();
+function subscribeNotifs(){
+  if(unsubNotif) unsubNotif();
+  const q = query(collection(db,COL), where('userId','==',me.id));
+  unsubNotif = onSnapshot(q, snap=>{
+    const today = todayStr();
+    pendingNotifs = [];
+    snap.forEach(d=>{
+      const e = d.data();
+      if(e.date<today) return;
+      if(!e.removed && !e.seen && e.addedBy && e.addedBy!==e.name && !ackedLocal.has(e.id+':add')) pendingNotifs.push({...e,_t:'add'});
+      else if(e.removed && !e.removalSeen && e.removedBy && e.removedBy!==e.name && !ackedLocal.has(e.id+':rm')) pendingNotifs.push({...e,_t:'rm'});
+    });
+    pendingNotifs.sort((a,b)=>a.date.localeCompare(b.date));
+    renderNotifs();
+    if(!dutyChecked){
+      dutyChecked = true;
+      const mine = [];
+      snap.forEach(d=>{ const e=d.data(); if(e.date===today && !e.removed) mine.push(e); });
+      showDuty(mine);
+    }
+  }, err=>console.error(err));
+}
+// ─── POPUP „MASZ DZIŚ DYŻUR” (raz po zalogowaniu) ───
+let dutyChecked = false;
+function showDuty(mine){
+  if(!mine.length) return;
+  const order = SHIFTS.map(s=>s.key);
+  const labels = [...new Set(mine.map(e=>e.shift))]
+    .sort((a,b)=>order.indexOf(a)-order.indexOf(b))
+    .map(k=>{ const sh=SHIFTS.find(x=>x.key===k); return sh?sh.label:k; });
+  document.getElementById('duty-date').textContent = fmtDate(todayStr());
+  document.getElementById('duty-shifts').innerHTML = labels.map(l=>`<span>${esc(l)}</span>`).join('');
+  document.getElementById('duty-ov').classList.add('show');
+}
+window.closeDuty = () => document.getElementById('duty-ov').classList.remove('show');
+function renderNotifs(){
+  const ov = document.getElementById('notif-ov');
+  if(!pendingNotifs.length){ ov.classList.remove('show'); return; }
+  document.getElementById('notif-list').innerHTML = pendingNotifs.map(e=>{
+    const sh = SHIFTS.find(x=>x.key===e.shift);
+    const shl = sh?sh.label.toLowerCase():esc(e.shift);
+    return e._t==='rm'
+      ? `<div class="notif-item rm"><b>${esc(e.removedBy)}</b> wypisał(a) Cię z dnia <b>${fmtDate(e.date)}</b> z pory: <b>${shl}</b>.</div>`
+      : `<div class="notif-item"><b>${esc(e.addedBy)}</b> wpisał(a) Cię dnia <b>${fmtDate(e.date)}</b> na <b>${shl}</b>.</div>`;
+  }).join('');
+  ov.classList.add('show');
+}
+window.ackNotifs = async () => {
+  const list = pendingNotifs.slice();
+  list.forEach(e=>ackedLocal.add(e.id+':'+e._t));
+  pendingNotifs = []; renderNotifs();
+  try{
+    const batch = writeBatch(db);
+    list.forEach(e=>batch.update(doc(db,COL,e.id), e._t==='rm' ? {removalSeen:true} : {seen:true}));
+    await batch.commit();
+  }catch(err){ console.error(err); }
+};
+
+// ─── NOWOŚCI (dzwonek) — tylko Ola i Grzegorz: zapisy i wypisy wszystkich z ostatnich 14 dni ───
+const canSeeNews = () => !!me && (me.id===ADMIN_ID || me.id===MANAGER_ID || me.id===VIEWER_ID);
+const NEWS_DAYS = 14;
+let newsAdds = {}, newsRms = {}, newsList = [];
+const newsKey = () => 'dyzury_news_seen_'+me.id;
+const getNewsSeen = () => { try{ return localStorage.getItem(newsKey())||''; }catch(e){ return ''; } };
+const setNewsSeen = v => { try{ localStorage.setItem(newsKey(), v); }catch(e){} };
+function subscribeNews(){
+  if(!canSeeNews()) return;
+  document.getElementById('news-bell').classList.add('show');
+  const cutoff = new Date(Date.now()-NEWS_DAYS*864e5).toISOString();
+  onSnapshot(query(collection(db,COL), where('createdAt','>=',cutoff)), snap=>{
+    newsAdds = {}; snap.forEach(d=>newsAdds[d.id]=d.data()); rebuildNews();
+  }, err=>console.error(err));
+  onSnapshot(query(collection(db,COL), where('removedAt','>=',cutoff)), snap=>{
+    newsRms = {}; snap.forEach(d=>newsRms[d.id]=d.data()); rebuildNews();
+  }, err=>console.error(err));
+}
+function rebuildNews(){
+  const list = [];
+  Object.values(newsAdds).forEach(e=>list.push({t:'add',at:e.createdAt,who:e.addedBy||e.name,e}));
+  Object.values(newsRms).forEach(e=>{ if(e.removed) list.push({t:'rm',at:e.removedAt,who:e.removedBy||e.name,e}); });
+  list.sort((a,b)=>b.at.localeCompare(a.at));
+  newsList = list.slice(0,60);
+  updateNewsBadge();
+  if(document.getElementById('news-ov').classList.contains('show')) renderNews(getNewsSeen());
+}
+const isNewsUnread = (n, seen) => n.at > seen && n.who !== me.name;
+function updateNewsBadge(){
+  const seen = getNewsSeen();
+  const c = newsList.filter(n=>isNewsUnread(n,seen)).length;
+  const el = document.getElementById('news-cnt');
+  el.textContent = c>99?'99+':c; el.classList.toggle('show', c>0);
+}
+function renderNews(seen){
+  document.getElementById('news-list').innerHTML = newsList.length ? newsList.map(n=>{
+    const e = n.e, self = n.who===e.name;
+    const sh = SHIFTS.find(x=>x.key===e.shift), shl = sh?sh.label.toLowerCase():esc(e.shift);
+    const what = n.t==='add'
+      ? (self ? `<b>${esc(n.who)}</b> zapisał(a) się` : `<b>${esc(n.who)}</b> wpisał(a) <b>${esc(e.name)}</b>`)
+      : (self ? `<b>${esc(n.who)}</b> wypisał(a) się` : `<b>${esc(n.who)}</b> wypisał(a) <b>${esc(e.name)}</b>`);
+    const tag = isNewsUnread(n,seen) ? '<span class="newtag">NOWE</span>' : '';
+    return `<div class="notif-item ${n.t==='rm'?'rm':''}">${tag}${what} — <b>${fmtDate(e.date)}</b>, ${shl}<div class="notif-time">${fmtTs(n.at)}</div></div>`;
+  }).join('') : `<div class="notif-item" style="background:var(--bg);border-left-color:#ccc">Brak zapisów i wypisów z ostatnich ${NEWS_DAYS} dni.</div>`;
+}
+window.openNews = () => {
+  if(!canSeeNews()) return;
+  const seen = getNewsSeen();
+  renderNews(seen);
+  document.getElementById('news-ov').classList.add('show');
+  if(newsList.length){ const latest = newsList[0].at; if(latest>seen) setNewsSeen(latest); }
+  updateNewsBadge();
+};
+window.closeNews = () => document.getElementById('news-ov').classList.remove('show');
+
+// ─── KALENDARZ ───
+function renderCalendar(){
+  const mies=['styczeń','luty','marzec','kwiecień','maj','czerwiec','lipiec','sierpień','wrzesień','październik','listopad','grudzień'];
+  document.getElementById('month-label').textContent = mies[calMonth]+' '+calYear;
+  const leading = (new Date(calYear,calMonth,1).getDay()+6)%7;
+  const dim = new Date(calYear,calMonth+1,0).getDate();
+  const cells = Math.ceil((leading+dim)/7)*7;
+  const today = todayStr();
+  let html='';
+  for(let i=0;i<cells;i++){
+    const d = new Date(calYear,calMonth,i-leading+1);
+    const ds = ymd(d);
+    const act = activeFor(ds);
+    const mine = me && act.some(e=>e.userId===me.id);
+    const cls = 'day'+(d.getMonth()===calMonth?'':' other')+(ds<today?' past':'')+(ds===today?' today':'')+(act.length?' has':'')+(mine?' mine':'');
+    html += `<div class="${cls}" onclick="openDay('${ds}')"><b>${d.getDate()}</b>${act.length?`<small>${act.length}</small>`:''}</div>`;
+  }
+  document.getElementById('grid').innerHTML = html;
+}
+window.changeMonth = delta => {
+  calMonth += delta;
+  if(calMonth<0){calMonth=11;calYear--}
+  if(calMonth>11){calMonth=0;calYear++}
+  renderCalendar(); subscribeMonth();
+};
+
+// ─── WIDOK DNIA ───
+window.openDay = ds => { selDate = ds; openAdd.clear(); renderDay(); document.getElementById('day-overlay').classList.add('show'); };
+window.shiftDay = delta => {
+  const [y,m,d] = selDate.split('-').map(Number);
+  const nd = new Date(y,m-1,d+delta);
+  selDate = ymd(nd); openAdd.clear();
+  if(nd.getFullYear()!==calYear || nd.getMonth()!==calMonth){
+    calYear = nd.getFullYear(); calMonth = nd.getMonth();
+    renderCalendar(); subscribeMonth();
+  }
+  renderDay();
+};
+window.closeDay = () => document.getElementById('day-overlay').classList.remove('show');
+
+function fmtDate(ds){
+  const [y,m,d]=ds.split('-').map(Number);
+  const dni=['niedziela','poniedziałek','wtorek','środa','czwartek','piątek','sobota'];
+  const mies=['stycznia','lutego','marca','kwietnia','maja','czerwca','lipca','sierpnia','września','października','listopada','grudnia'];
+  return `${d} ${mies[m-1]} ${y} (${dni[new Date(y,m-1,d).getDay()]})`;
+}
+function fmtTs(iso){
+  if(!iso) return '';
+  const d=new Date(iso); if(isNaN(d)) return '';
+  return d.toLocaleString('pl-PL',{day:'numeric',month:'numeric',hour:'2-digit',minute:'2-digit'});
+}
+
+const openNotes = new Set();   // które notatki są rozwinięte
+const noteDrafts = {};         // niezapisany tekst (przetrwa odświeżenie widoku)
+let adminMode = false;   // domyślnie wyłączony — Grzegorz ma wtedy widok zwykłego użytkownika
+const isAdmin = () => !!me && me.id === ADMIN_ID && adminMode;
+const CUTOFF = {rano:8, popoludnie:12, wieczor:16};   // godzina, od której zapisy na porę dzisiaj są zamknięte
+// Czy edycja danej pory w danym dniu jest zablokowana (dla nie-admina)
+function isLocked(date, shift){
+  if(isAdmin()) return false;
+  const t = todayStr();
+  if(date < t) return true;
+  if(date > t) return false;
+  if(!shift) return false;
+  return new Date().getHours() >= CUTOFF[shift];
+}
+const isManager = () => !!me && (isAdmin() || me.id === MANAGER_ID);
+function syncAdminUI(){
+  const btn = document.getElementById('admin-toggle');
+  const can = !!me && me.id === ADMIN_ID;
+  btn.classList.toggle('avail', can);
+  btn.classList.toggle('on', can && adminMode);
+  btn.textContent = adminMode ? '🔓 Ad: wł.' : '🔒 Ad: wył.';
+  document.getElementById('admin-bar').classList.toggle('show', isAdmin());
+}
+window.toggleAdminMode = () => {
+  if(!me || me.id !== ADMIN_ID) return;
+  adminMode = !adminMode;
+  syncAdminUI(); renderDay(); renderCalendar();
+  toast(adminMode ? 'Admin wł' : 'Admin wył');
+};   // może dodawać/wypisywać każdego
+function renderDay(){
+  if(!selDate) return;
+  const admin = isAdmin();
+  const mgr = isManager();
+  const canSeeMeta = !!me && (me.id===ADMIN_ID || me.id===MANAGER_ID || me.id===VIEWER_ID);   // godzinę dodania widzą tylko Grzegorz i Ola
+  const sections = SHIFTS.map(s=>{
+    const list = entriesFor(selDate, s.key);
+    const active = list.filter(e=>!e.removed);
+    const myActive = active.find(e=>e.userId===me.id);
+    const locked = isLocked(selDate, s.key);
+    const items = list.filter(e=>!e.removed || mgr).map(e=>{   // wypisanych widzą tylko Ola i Grzegorz (tryb admin)
+      const isMine = e.userId===me.id;
+      const canNote = isMine && !e.removed && !locked;                 // notatkę edytuje tylko jej autor
+      const canRemove = (isMine || mgr) && !e.removed && !locked;
+      const noteOpen = canNote && openNotes.has(e.id);
+      let meta = '';
+      if(canSeeMeta){
+        meta = 'dodano '+fmtTs(e.createdAt);
+        if(e.addedBy && e.addedBy!==e.name) meta += ' przez '+esc(e.addedBy);
+        if(e.removed) meta += ' · wypisano '+fmtTs(e.removedAt);
+      }
+      const delBtn = admin ? `<button class="btn btn-x" onclick="adminDelete('${e.id}')">Usuń bez śladu</button>` : '';
+      return `<div class="entry${isMine?' mine':''}${e.removed?' removed':''}">
+        <div class="nm-row"><div class="nm">${esc(e.name)}</div>${canNote?`<button class="note-ico${noteOpen?' open':''}${e.note?' has':''}" onclick="toggleNote('${e.id}')" aria-label="Notatka" title="Notatka (opcjonalnie)">📝</button>`:''}</div>
+        ${noteOpen
+          ? `<textarea rows="2" id="note-${e.id}" placeholder="Notatka (opcjonalnie)…" oninput="noteDrafts['${e.id}']=this.value">${esc(noteDrafts[e.id]!==undefined?noteDrafts[e.id]:(e.note||''))}</textarea>`
+          : (e.note?`<div class="note">${esc(e.note)}</div>`:'')}
+        ${(noteOpen||canRemove||delBtn)
+          ? `<div class="row">${noteOpen?`<button class="btn btn-p" onclick="saveNote('${e.id}')">Zapisz notatkę</button>`:''}${canRemove?`<button class="btn btn-d" onclick="removeMe('${e.id}')">${isMine?'Wypisz mnie':'Wypisz'}</button>`:''}${delBtn}</div>`:''}
+        ${meta?`<div class="meta">${meta}</div>`:''}
+      </div>`;
+    }).join('');
+    const avail = USERS.filter(u=>!active.some(e=>e.userId===u.id));
+    const addOpen = mgr && !locked && openAdd.has(s.key);
+    const adminAdd = addOpen ? `<div class="admin-box">
+        ${avail.length
+          ? `<select id="adm-sel-${s.key}">${avail.map(u=>`<option value="${u.id}">${esc(u.name)}</option>`).join('')}</select>
+             <button class="btn btn-o" onclick="adminAdd('${s.key}')">＋ Dodaj wybraną osobę</button>`
+          : '<div class="none" style="padding:0">Wszystkie osoby są już wpisane na tę porę.</div>'}
+      </div>` : '';
+    const btns = locked ? `<div class="lock-note"> </div>` : `<div class="row">${myActive ? '' : `<button class="btn btn-g" onclick="addMe('${s.key}')">＋ Zapisz mnie</button>`}${mgr ? `<button class="btn btn-add${addOpen?' open':''}" onclick="toggleAdd('${s.key}')">👤 Dodaj osobę ${addOpen?'▴':'▾'}</button>` : ''}</div>`;
+    return `<div class="shift${locked?' locked':''}">
+      <div class="shift-h"><strong>${s.label}</strong><span>${active.length?active.length+' os.':'brak'}</span></div>
+      ${items || '<div class="none">Nikt się jeszcze nie zapisał</div>'}
+      ${btns}
+      ${adminAdd}
+    </div>`;
+  }).join('');
+  document.getElementById('day-content').innerHTML = `
+    <div class="day-nav"><button onclick="shiftDay(-1)" aria-label="Poprzedni dzień">‹</button><h2>${fmtDate(selDate)}</h2><button onclick="shiftDay(1)" aria-label="Następny dzień">›</button></div>
+    <div class="sub" style="text-align:center">${admin?'Jako administrator możesz dodawać, wypisywać i usuwać każdego.':mgr?'Możesz dodawać i wypisywać każdego. Wypisane osoby zostają widoczne jako przekreślone.':' '}</div>
+    ${sections}
+    ${admin?`<button class="btn btn-x" style="width:100%;margin-bottom:.5rem" onclick="adminWipeDay()">Usuń wszystko z tego dnia (bez śladu)</button>`:''}
+    <button class="btn btn-l" style="width:100%" onclick="closeDay()">Zamknij</button>`;
+}
+
+// ─── AKCJE ───
+window.addMe = async shift => {
+  if(isLocked(selDate,shift)){ toast('Zapisy na tę porę są zamknięte'); renderDay(); return; }
+  if(entriesFor(selDate,shift).some(e=>e.userId===me.id && !e.removed)) return;
+  const id = uid();
+  const rec = {id,date:selDate,shift,userId:me.id,name:me.name,note:'',removed:false,createdAt:new Date().toISOString(),addedBy:me.name};
+  entries[id]=rec; renderDay(); renderCalendar();           // natychmiastowa reakcja
+  try{ await setDoc(doc(db,COL,id),rec); toast('Zapisano ✓'); }
+  catch(e){ delete entries[id]; renderDay(); renderCalendar(); toast('Błąd zapisu — sprawdź połączenie'); }
+};
+window.removeMe = async id => {
+  const e = entries[id]; if(!e || (e.userId!==me.id && !isManager())) return;
+  if(isLocked(e.date,e.shift)){ toast('Zapisy na tę porę są zamknięte'); renderDay(); return; }
+  const who = e.userId===me.id ? 'siebie' : e.name;
+  if(!confirm(`Czy na pewno wypisać ${who} (${fmtDate(e.date)}, ${SHIFTS.find(x=>x.key===e.shift).label.toLowerCase()})?`)) return;
+  const patch = {removed:true,removedAt:new Date().toISOString(),removedBy:me.name};
+  try{ await updateDoc(doc(db,COL,id),patch); toast('Wypisano'); }
+  catch(err){ toast('Błąd — sprawdź połączenie'); }
+};
+window.toggleNote = id => { openNotes.has(id) ? (openNotes.delete(id), delete noteDrafts[id]) : openNotes.add(id); renderDay(); if(openNotes.has(id)){ const t=document.getElementById('note-'+id); if(t) t.focus(); } };
+window.saveNote = async id => {
+  const e = entries[id]; if(!e || e.userId!==me.id) return;
+  if(isLocked(e.date,e.shift)){ toast('Zapisy na tę porę są zamknięte'); renderDay(); return; }
+  const note = document.getElementById('note-'+id).value.trim();
+  try{ await updateDoc(doc(db,COL,id),{note}); openNotes.delete(id); delete noteDrafts[id]; renderDay(); toast('Notatka zapisana ✓'); }
+  catch(err){ toast('Błąd — sprawdź połączenie'); }
+};
+
+// ─── ADMIN ───
+window.toggleAdd = key => { openAdd.has(key) ? openAdd.delete(key) : openAdd.add(key); renderDay(); };
+window.adminAdd = async shift => {
+  if(!isManager()) return;
+  if(isLocked(selDate,shift)){ toast('Zapisy na tę porę są zamknięte'); renderDay(); return; }
+  const userId = document.getElementById('adm-sel-'+shift).value;
+  const u = USERS.find(x=>x.id===userId); if(!u) return;
+  if(entriesFor(selDate,shift).some(e=>e.userId===u.id && !e.removed)){ toast('Ta osoba już jest wpisana'); return; }
+  const id = uid();
+  const rec = {id,date:selDate,shift,userId:u.id,name:u.name,note:'',removed:false,createdAt:new Date().toISOString(),addedBy:me.name};
+  entries[id]=rec; openAdd.delete(shift); renderDay(); renderCalendar();
+  try{ await setDoc(doc(db,COL,id),rec); toast('Dodano: '+u.name); }
+  catch(e){ delete entries[id]; renderDay(); renderCalendar(); toast('Błąd zapisu'); }
+};
+window.adminDelete = async id => {
+  if(!isAdmin()) return;
+  const be = entries[id]; if(!be) return;
+  if(!confirm(`Czy na pewno usunąć bez śladu wpis: ${be.name} (${fmtDate(be.date)}, ${SHIFTS.find(x=>x.key===be.shift).label.toLowerCase()})? Tego nie da się cofnąć.`)) return;
+  const bak = entries[id]; delete entries[id]; renderDay(); renderCalendar();
+  try{ await deleteDoc(doc(db,COL,id)); toast('Usunięto bez śladu'); }
+  catch(e){ entries[id]=bak; renderDay(); renderCalendar(); toast('Błąd usuwania'); }
+};
+async function deleteMany(ids){
+  for(let i=0;i<ids.length;i+=400){
+    const batch = writeBatch(db);
+    ids.slice(i,i+400).forEach(id=>batch.delete(doc(db,COL,id)));
+    await batch.commit();
+  }
+}
+window.adminWipeDay = async () => {
+  if(!isAdmin()) return;
+  const ids = Object.values(entries).filter(e=>e.date===selDate).map(e=>e.id);
+  if(!ids.length){ toast('Ten dzień jest pusty'); return; }
+  if(!confirm(`Usunąć bez śladu ${ids.length} wpisów z dnia ${selDate}?`)) return;
+  try{ await deleteMany(ids); toast('Dzień wyczyszczony'); }catch(e){ toast('Błąd usuwania'); }
+};
+window.adminWipeMonth = async () => {
+  if(!isAdmin()) return;
+  const prefix = `${calYear}-${pad2(calMonth+1)}-`;
+  const ids = Object.values(entries).filter(e=>e.date.startsWith(prefix)).map(e=>e.id);
+  if(!ids.length){ toast('Ten miesiąc jest pusty'); return; }
+  if(!confirm(`Usunąć bez śladu ${ids.length} wpisów z całego miesiąca (${prefix.slice(0,7)})?`)) return;
+  try{ await deleteMany(ids); toast('Miesiąc wyczyszczony'); }catch(e){ toast('Błąd usuwania'); }
+};
+window.adminWipeAll = async () => {
+  if(!isAdmin()) return;
+  if(!confirm('Usunąć WSZYSTKIE dyżury ze wszystkich miesięcy? Tego nie da się cofnąć.')) return;
+  try{
+    const snap = await getDocs(collection(db,COL));
+    const ids = []; snap.forEach(d=>ids.push(d.id));
+    await deleteMany(ids);
+    toast(`Usunięto wszystko (${ids.length})`);
+  }catch(e){ toast('Błąd usuwania'); }
+};
+
+document.getElementById('day-overlay').addEventListener('click',e=>{ if(e.target.id==='day-overlay') closeDay(); });
+
+// ─── START PO ZALOGOWANIU ───
+function start(user){
+  me = user; dutyChecked = false;
+  document.getElementById('user-badge').textContent = '🐈 '+me.name;
+  document.getElementById('pin-screen').style.display='none';
+  adminMode = false;
+  syncAdminUI();
+  renderCalendar(); subscribeMonth(); subscribeNotifs(); subscribeNews();
+}
+setInterval(()=>{ if(!me) return; renderCalendar(); if(document.getElementById('day-overlay').classList.contains('show')){
+  const a=document.activeElement; if(!(a && a.tagName==='TEXTAREA')) renderDay(); } }, 60000);
+window.addEventListener('dyzury-login', e=>start(e.detail));
+if(window.__dyzuryPendingLogin) start(window.__dyzuryPendingLogin);
+</script>
+
+<script>
+(function(){
+  const USERS = [
+    {id:"u1",name:"Beata M",hash:"0378924c08620ae18151fc4a3e6ae3a9e9b43b10f5d6308306cbced3f8527bf0"},
+    {id:"u2",name:"Beata S",hash:"5e42002668a48c93bd20f658106f96c8ee6ddfb41f4dc37252b5cbc0fbd21146"},
+    {id:"u3",name:"Damian",hash:"e6ec3ee57bc5af329b92e8157284f5c1c708e1e7e433f6a2fbb1c8245685d164"},
+    {id:"u4",name:"Emilia",hash:"60daf87f871fde131470ca83180764bf6bcf540bac83e785ca90d9c5b0718cae"},
+    {id:"u5",name:"Grzegorz",hash:"5cccb8422e93cccd919d3e9b96d742e92ecf1b8a36f030a97c4cdc36fb3c9d82"},
+    {id:"u6",name:"Jagoda",hash:"850622a3ca98952f38666870e57e74499b7e8bb3437501e0bdc2e170f41baee8"},
+    {id:"u7",name:"Kasia",hash:"5e68fbcc1e79b61ff04454a51afc842e335c58ae7c96f15a8d4540ad470b21bd"},
+    {id:"u8",name:"Magda",hash:"f882d72f94a630bf542397233d901a13fe02c671756dbca9ba6dfd7f375f858a"},
+    {id:"u9",name:"Monika",hash:"bb1f648fc4f0f90167e2194b3b76f83074b1d13a8a6b75606803bc560e7fdaf0"},
+    {id:"u10",name:"Ola",hash:"42a69ef6abff3ddddb7b46b6a37048f71be835baef99a3e3929e1285d0ea21b8"},
+    {id:"u11",name:"Patrycja",hash:"08391494ccc44956aa4f78146c3513b6967c2388b7745bb285456d984f6d14c2"}
+  ];
+  const LEN=4, KEY='dyzury_user';
+  let entered='';
+
+  async function sha256Hex(t){
+    const d=await crypto.subtle.digest('SHA-256',new TextEncoder().encode(t));
+    return Array.from(new Uint8Array(d)).map(b=>b.toString(16).padStart(2,'0')).join('');
+  }
+  function login(u){
+    window.__dyzuryPendingLogin=u;
+    window.dispatchEvent(new CustomEvent('dyzury-login',{detail:u}));
+  }
+  // zapamiętane logowanie (sessionStorage — do zamknięcia karty)
+  try{
+    const saved=sessionStorage.getItem(KEY);
+    if(saved){const u=USERS.find(x=>x.id===saved); if(u){login({id:u.id,name:u.name});}}
+  }catch(e){}
+
+  function dots(){for(let i=0;i<LEN;i++)document.getElementById('pd'+i).classList.toggle('filled',i<entered.length)}
+  window.pinKey=function(k){
+    if(entered.length>=LEN)return;
+    entered+=k;dots();
+    if(entered.length===LEN)verify();
+  };
+  window.pinDel=function(){
+    entered=entered.slice(0,-1);dots();
+    document.getElementById('pin-error').textContent='';
+    document.querySelectorAll('.pin-dot').forEach(d=>d.classList.remove('error'));
+  };
+  async function verify(){
+    const h=await sha256Hex('dyzury:'+entered);
+    const u=USERS.find(x=>x.hash===h);
+    if(u){
+      try{sessionStorage.setItem(KEY,u.id)}catch(e){}
+      entered='';dots();
+      login({id:u.id,name:u.name});
+    } else {
+      document.querySelectorAll('.pin-dot').forEach(d=>d.classList.add('error'));
+      document.getElementById('pin-error').textContent='Nieprawidłowy PIN';
+      setTimeout(()=>{
+        entered='';dots();
+        document.querySelectorAll('.pin-dot').forEach(d=>d.classList.remove('error'));
+        document.getElementById('pin-error').textContent='';
+      },900);
+    }
+  }
+  window.logout=function(){
+    try{sessionStorage.removeItem(KEY)}catch(e){}
+    location.reload();
+  };
+})();
+</script>
+</body>
+</html>
