@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="pl"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="robots" content="noindex, nofollow"><title>Test instalacji – Dyżury</title>
+<link rel="manifest" href="manifest.json">
+<style>
+body{font-family:-apple-system,Arial,sans-serif;background:#F0EDF8;color:#1B2A4A;margin:0;padding:1rem;max-width:560px;margin:0 auto}
+h1{font-size:1.2rem}
+.r{background:#fff;border-radius:10px;padding:.6rem .8rem;margin-bottom:.45rem;font-size:.85rem;line-height:1.4;word-break:break-word;border-left:5px solid #ccc}
+.r.ok{border-color:#1DB96A}.r.bad{border-color:#E84040}.r.warn{border-color:#F5A623}
+.r b{display:block}.r small{color:#7A8AAA}
+button{font:inherit;font-weight:700;background:#2C3E6A;color:#fff;border:0;border-radius:10px;padding:.6rem 1rem;margin:.5rem 0;width:100%}
+</style></head><body>
+<h1>Test instalacji aplikacji</h1>
+<div id="out"></div>
+<button onclick="copyAll()">Skopiuj wynik</button>
+<script>
+const out=document.getElementById('out'), lines=[];
+function add(state,title,detail){
+  lines.push((state==='ok'?'[OK] ':state==='bad'?'[BŁĄD] ':'[UWAGA] ')+title+(detail?' — '+detail:''));
+  const d=document.createElement('div'); d.className='r '+state;
+  d.innerHTML='<b>'+(state==='ok'?'✓ ':state==='bad'?'✗ ':'! ')+title+'</b>'+(detail?'<small>'+detail+'</small>':'');
+  out.appendChild(d);
+}
+function copyAll(){ navigator.clipboard&&navigator.clipboard.writeText(lines.join('\n')).then(()=>alert('Skopiowano – wklej w rozmowie')); }
+const base=location.href.replace(/[^\/]*$/,'');
+async function head(url){ const r=await fetch(url+(url.includes('?')?'&':'?')+'t='+Date.now(),{cache:'no-store'}); return r; }
+(async()=>{
+  add(location.protocol==='https:'?'ok':'bad','Adres: '+location.href, location.protocol==='https:'?'HTTPS – OK':'Musi być https://');
+  const ua=navigator.userAgent;
+  add(/FBAN|FBAV|FB_IAB|Instagram|Messenger|Line\/|; wv\)|GSA\//.test(ua)?'bad':'ok','Przeglądarka', /FBAN|FBAV|FB_IAB|Instagram|Messenger|; wv\)|GSA\//.test(ua)?'To wygląda na przeglądarkę wbudowaną w aplikację – otwórz stronę w Chrome. ':ua);
+  add(('serviceWorker' in navigator)?'ok':'bad','Service worker w przeglądarce',('serviceWorker' in navigator)?'obsługiwany':'brak obsługi');
+  add((window.matchMedia('(display-mode: standalone)').matches||navigator.standalone)?'warn':'ok','Tryb','otwarte '+((window.matchMedia('(display-mode: standalone)').matches||navigator.standalone)?'jako zainstalowana aplikacja':'w przeglądarce'));
+
+  // 1. index.html na serwerze – czy ma link do manifestu
+  let mHref=null;
+  try{
+    const r=await head(base+'index.html'); const t=await r.text();
+    const m=t.match(/<link[^>]+rel=["']manifest["'][^>]*href=["']([^"']+)["']/i);
+    if(r.ok&&m){ mHref=m[1]; add('ok','index.html na serwerze','link do manifestu: '+m[1]); }
+    else add('bad','index.html na serwerze', r.ok?'brak <link rel="manifest"> – na serwerze jest STARA wersja index.html':'HTTP '+r.status);
+  }catch(e){ add('bad','index.html na serwerze',String(e)); }
+
+  // 2. manifest
+  let man=null;
+  const mUrl=new URL(mHref||'manifest.json',base).href;
+  try{
+    const r=await head(mUrl);
+    if(!r.ok) add('bad','Manifest '+mUrl,'HTTP '+r.status+' – plik nie został wgrany / zła nazwa lub folder');
+    else{
+      try{ man=JSON.parse(await r.text()); add('ok','Manifest wczytany','Content-Type: '+(r.headers.get('content-type')||'?')); }
+      catch(e){ add('bad','Manifest nie jest poprawnym JSON-em',String(e)); }
+    }
+  }catch(e){ add('bad','Manifest',String(e)); }
+
+  if(man){
+    const need=['name','start_url','display','icons'];
+    need.forEach(k=>add(man[k]?'ok':'bad','Manifest: '+k, man[k]?JSON.stringify(man[k]).slice(0,80):'brak'));
+    add(['standalone','fullscreen','minimal-ui'].includes(man.display)?'ok':'bad','display',man.display);
+    // start_url w zakresie
+    try{
+      const st=new URL(man.start_url,mUrl).href, sc=new URL(man.scope||'./',mUrl).href;
+      add(st.startsWith(sc)?'ok':'bad','start_url w zakresie (scope)',st+' | '+sc);
+      const r=await head(st); add(r.ok?'ok':'bad','start_url otwiera się','HTTP '+r.status);
+    }catch(e){ add('bad','start_url',String(e)); }
+    // ikony
+    for(const ic of (man.icons||[])){
+      const u=new URL(ic.src,mUrl).href;
+      try{
+        const r=await head(u); const ct=r.headers.get('content-type')||'';
+        if(!r.ok){ add('bad','Ikona '+ic.sizes+' ('+(ic.purpose||'any')+')',u+' → HTTP '+r.status+' (brak pliku na serwerze)'); continue; }
+        const blob=await r.blob(); const url=URL.createObjectURL(blob);
+        await new Promise(res=>{ const im=new Image(); im.onload=()=>{ const ok=im.naturalWidth+'x'+im.naturalHeight===ic.sizes;
+          add(ok&&ct.includes('image')?'ok':'bad','Ikona '+ic.sizes+' ('+(ic.purpose||'any')+')',ct+', rzeczywisty rozmiar '+im.naturalWidth+'x'+im.naturalHeight+(ok?'':' ≠ deklarowany')); res(); };
+          im.onerror=()=>{ add('bad','Ikona '+ic.sizes,u+' – to nie jest poprawny obraz'); res(); }; im.src=url; });
+      }catch(e){ add('bad','Ikona '+ic.src,String(e)); }
+    }
+  }
+
+  // 3. service worker
+  try{
+    const r=await head(base+'sw.js');
+    const ct=r.headers.get('content-type')||'';
+    add(r.ok&&/javascript/.test(ct)?'ok':'bad','sw.js',r.ok?ct:'HTTP '+r.status+' – plik nie został wgrany');
+  }catch(e){ add('bad','sw.js',String(e)); }
+  try{
+    const regs=await navigator.serviceWorker.getRegistrations();
+    const mine=regs.filter(g=>g.scope.startsWith(base));
+    add(mine.length?'ok':'warn','Zarejestrowany service worker', mine.length?mine.map(g=>g.scope+' ('+(g.active?'aktywny':'niezaktywowany')+')').join(', '):'brak – otwórz najpierw główną stronę aplikacji, poczekaj kilka sekund i uruchom test ponownie');
+  }catch(e){ add('warn','Service worker',String(e)); }
+
+  // 4. zdarzenie instalacji
+  let got=false;
+  window.addEventListener('beforeinstallprompt',()=>{ got=true; });
+  await new Promise(r=>setTimeout(r,3500));
+  add(got?'ok':'warn','Chrome zgłosił gotowość do instalacji (beforeinstallprompt)', got?'tak – aplikacja jest instalowalna':'nie – Chrome uważa, że aplikacja NIE spełnia wymagań instalacji (albo jest już zainstalowana)');
+})();
+</script></body></html>
