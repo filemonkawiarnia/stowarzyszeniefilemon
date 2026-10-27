@@ -305,7 +305,7 @@ let dutyChecked = false;
 // dayOffset 0 = tego samego dnia, -1 = dzień wcześniej (from/to w godzinach, 0–24)
 const DUTY_WINDOWS = {
   rano:       {showFrom:{day:-1, h:16}, showUntil:{day:0, h:12}},
-  popoludnie: {showFrom:{day:0,  h:0},  showUntil:{day:0, h:15}},
+  popoludnie: {showFrom:{day:-1,  h:19},  showUntil:{day:0, h:15}},
   wieczor:    {showFrom:{day:0,  h:0},  showUntil:{day:0, h:20}}
 };
 function dutyVisible(e, now=new Date()){
