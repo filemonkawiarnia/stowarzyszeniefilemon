@@ -590,9 +590,9 @@ let done = false;
 new IntersectionObserver(entries => {
   if (entries[0].isIntersecting && !done) {
     done = true;
-    animNum(document.getElementById('counter-number'), 296);
+    animNum(document.getElementById('counter-number'), 297);
     animNum(document.getElementById('cnt-kast'), 674);
-    animNum(document.getElementById('cnt-opieka'), 27);
+    animNum(document.getElementById('cnt-opiek'), 26);
   }
 }, { threshold: .3 }).observe(document.getElementById('counter-section'));
 
