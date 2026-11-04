@@ -716,9 +716,8 @@ document.getElementById('contactForm').addEventListener('submit', function(e) {
 /* Konkurs popup – pokazuje się raz na sesję */
 (function(){
   var ov = document.getElementById('kpOverlay');
-  function close(){ ov.classList.remove('show'); try{ sessionStorage.setItem('kpSeen','1'); }catch(e){} }
-  var seen = false; try{ seen = sessionStorage.getItem('kpSeen') === '1'; }catch(e){}
-  if(!seen){ setTimeout(function(){ ov.classList.add('show'); }, 1500); }
+  function close(){ ov.classList.remove('show'); }
+setTimeout(function(){ ov.classList.add('show'); }, 1500);  
   document.getElementById('kpClose').addEventListener('click', close);
   document.getElementById('kpLater').addEventListener('click', close);
   document.getElementById('kpConfirm').addEventListener('click', close);
