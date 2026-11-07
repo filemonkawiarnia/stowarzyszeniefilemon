@@ -1,0 +1,1547 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+<meta charset="UTF-8">
+<meta name="robots" content="noindex, nofollow">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<meta name="theme-color" content="#2C3E6A">
+<link rel="manifest" href="manifest.json">
+<link rel="icon" type="image/png" sizes="32x32" href="favicon-32.png">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Dyżury">
+<title>Dyżury</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" crossorigin="anonymous" referrerpolicy="no-referrer">
+<style>
+:root{--navy:#2C3E6A;--navy2:#1E2E52;--green:#1DB96A;--red:#E84040;--yellow:#F5A623;--bg:#F0EDF8;--text:#1B2A4A;--muted:#7A8AAA;--border:rgba(27,42,74,.12);--accent:#E8A73A}
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+body{font-family:-apple-system,'Helvetica Neue',Arial,sans-serif;background:var(--bg);color:var(--text);min-height:100vh;padding-bottom:3rem}
+header{background:var(--navy);color:#fff;padding:.9rem 1rem;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:50;box-shadow:0 2px 16px rgba(0,0,0,.2)}
+header h1{font-size:1.1rem;font-weight:800}
+.hdr-right{display:flex;align-items:center;gap:.5rem}
+#user-badge{font-size:.75rem;font-weight:700;background:rgba(255,255,255,.15);padding:.3rem .7rem;border-radius:20px;cursor:pointer}
+.cal-nav{display:flex;align-items:center;justify-content:space-between;padding:.75rem 1rem;background:#fff;border-bottom:1px solid var(--border)}
+.cal-nav button{background:none;border:none;font-size:1.6rem;color:var(--navy);padding:.2rem .6rem;cursor:pointer}
+#month-label{font-weight:700;text-transform:capitalize}
+.weekdays,.grid{display:grid;grid-template-columns:repeat(7,1fr);background:#fff}
+.weekdays{padding:.5rem .5rem 0}
+.weekdays span{text-align:center;font-size:.68rem;font-weight:700;color:var(--muted);text-transform:uppercase}
+.grid{gap:.35rem;padding:.5rem}
+.day{aspect-ratio:1;display:flex;flex-direction:column;align-items:center;justify-content:center;border-radius:10px;background:var(--bg);cursor:pointer;border:2px solid transparent;position:relative;user-select:none}
+.day b{font-size:.9rem}
+.day small{font-size:.62rem;font-weight:700;opacity:.9}
+.day.other{opacity:.35}
+.day.past{background:#E4E3EA;color:#A3A3B0;cursor:pointer}
+.day.past.has{background:#B9C4BE;color:#fff}
+.day.past.mine::after{background:#E4E3EA;box-shadow:0 0 0 2px #A3A3B0}
+.lock-note{font-size:.72rem;color:var(--muted);margin-top:.3rem}
+.shift.locked{background:#F4F3F7}
+.day.today{background:#FFF3D9;border-color:var(--accent)}
+.day.has{background:var(--green);color:#fff}
+.day.has.today{border-color:var(--accent);box-shadow:0 0 0 2px var(--accent)}
+.day.mine::after{content:'';position:absolute;top:4px;right:4px;width:8px;height:8px;border-radius:50%;background:#fff;box-shadow:0 0 0 2px var(--navy)}
+.legend{font-size:.72rem;color:var(--muted);padding:.5rem 1rem;display:flex;gap:1rem;flex-wrap:wrap;background:#fff;border-bottom:1px solid var(--border)}
+.legend i{display:inline-block;width:10px;height:10px;border-radius:3px;margin-right:.3rem;vertical-align:middle}
+.overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:200;align-items:flex-end;justify-content:center}
+.overlay.show{display:flex}
+.sheet{background:#fff;border-radius:20px 20px 0 0;width:100%;max-width:520px;padding:1.2rem 1.2rem 2rem;max-height:92vh;overflow-y:auto}
+.handle{width:36px;height:4px;background:var(--border);border-radius:2px;margin:0 auto 1rem}
+.sheet h2{font-size:1.05rem;font-weight:800;margin-bottom:.2rem;text-transform:capitalize}
+.day-nav{display:flex;align-items:center;justify-content:space-between;gap:.5rem;margin-bottom:.2rem}.day-nav h2{flex:1;text-align:center;margin:0}.day-nav button{background:var(--bg);border:none;border-radius:50%;width:2.4rem;height:2.4rem;font-size:1.4rem;font-weight:700;color:var(--navy);cursor:pointer;line-height:1}
+.sub{font-size:.8rem;color:var(--muted);margin-bottom:1rem}
+.shift{border:1.5px solid var(--border);border-radius:14px;padding:.75rem .85rem;margin-bottom:.75rem}
+.shift-h{display:flex;justify-content:space-between;align-items:center;margin-bottom:.5rem}
+.shift-h strong{font-size:.95rem}
+.shift-h span{font-size:.72rem;color:var(--muted)}
+.entry{display:flex;flex-direction:column;gap:.25rem;padding:.45rem .6rem;border-radius:10px;background:var(--bg);margin-bottom:.4rem}
+.entry.mine{background:#DDF7E8}
+.entry .nm{font-weight:700;font-size:.9rem}
+.entry.removed .nm{text-decoration:line-through;color:var(--muted)}
+.entry.removed{opacity:.7}
+.entry .meta{font-size:.7rem;color:var(--muted)}
+.entry .note{font-size:.82rem;white-space:pre-wrap}
+.entry.removed .note{text-decoration:line-through;color:var(--muted)}
+.nm-row{display:flex;align-items:center;justify-content:space-between;gap:.5rem}
+.note-ico{border:1.5px solid var(--border);background:#fff;border-radius:8px;padding:.15rem .45rem;font-size:.9rem;cursor:pointer;line-height:1.3;position:relative;font-family:inherit}
+.note-ico.open{border-color:var(--navy);background:#eef1f8}
+.note-ico.has::after{content:'';position:absolute;top:-3px;right:-3px;width:8px;height:8px;border-radius:50%;background:var(--green)}
+.none{font-size:.8rem;color:var(--muted);padding:.2rem 0 .5rem}
+.btn{border:none;border-radius:10px;padding:.55rem .8rem;font-size:.82rem;font-weight:700;cursor:pointer;font-family:inherit}
+.btn:active{opacity:.7}
+.btn-p{background:var(--navy);color:#fff}
+.btn-g{background:var(--green);color:#fff}
+.btn-d{background:var(--red);color:#fff}
+.btn-l{background:#fff;border:1.5px solid var(--border);color:var(--text)}
+.row{display:flex;gap:.4rem;flex-wrap:wrap;margin-top:.3rem}
+textarea,input.note-in{width:100%;border:1.5px solid var(--border);border-radius:10px;padding:.5rem .65rem;font-size:.88rem;font-family:inherit;color:var(--text);resize:vertical}
+textarea:focus{outline:none;border-color:var(--navy)}
+.fa-solid{pointer-events:none}
+.fa-solid.sp{margin-right:.4em}
+.toast{position:fixed;bottom:1.5rem;left:50%;transform:translateX(-50%) translateY(10px);background:var(--navy);color:#fff;padding:.55rem 1.2rem;border-radius:30px;font-size:.85rem;font-weight:600;opacity:0;pointer-events:none;transition:.2s;z-index:600;white-space:nowrap}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+.pin-screen{position:fixed;inset:0;background:linear-gradient(160deg,#566AA0,#1E2E52);z-index:9999;display:flex;flex-direction:column;align-items:center;gap:1.2rem;padding-top:8vh;overflow-y:auto;padding-bottom:2rem}
+.pin-title{color:#fff;font-size:1.3rem;font-weight:800}
+.pin-sub{color:rgba(255,255,255,.6);font-size:.82rem;margin-top:-.8rem}
+.pin-dots{display:flex;gap:.8rem}
+.pin-dot{width:14px;height:14px;border-radius:50%;border:2px solid rgba(255,255,255,.4)}
+.pin-dot.filled{background:#fff;border-color:#fff}
+.pin-dot.error{background:var(--red);border-color:var(--red)}
+.pin-pad{display:grid;grid-template-columns:repeat(3,1fr);gap:.6rem;width:260px}
+.pin-btn{background:rgba(255,255,255,.1);border:none;border-radius:14px;height:64px;font-size:1.4rem;font-weight:700;color:#fff;cursor:pointer;font-family:inherit}
+.pin-btn:active{background:rgba(255,255,255,.25)}
+.pin-btn.empty{background:none;pointer-events:none}
+.pin-error{color:#ff8a8a;font-size:.82rem;font-weight:600;height:1.2rem}
+.admin-tabs{display:none;background:#FFF6DC;border-bottom:2px solid var(--accent);padding:.45rem 1rem;gap:.4rem}
+.admin-tabs.show{display:flex}
+.admin-tabs button{flex:1;border:1.5px solid var(--accent);background:#fff;border-radius:10px;padding:.45rem .3rem;font:inherit;font-size:.82rem;font-weight:700;color:#8A5A0F;cursor:pointer}
+.admin-tabs button.on{background:var(--accent);color:#1B2A4A}
+#view-settings{display:none;padding:1rem;max-width:560px;margin:0 auto}
+.set-card{background:#fff;border-radius:14px;padding:1rem;margin-bottom:.8rem;box-shadow:0 1px 6px rgba(27,42,74,.08)}
+.set-card h4{font-size:.78rem;text-transform:uppercase;letter-spacing:.06em;color:#8A5A0F;margin-bottom:.6rem}
+.set-row{display:flex;align-items:center;justify-content:space-between;gap:.8rem}
+.set-row b{font-size:.92rem;display:block}
+.set-row small{font-size:.78rem;color:var(--muted);line-height:1.35;display:block;margin-top:.15rem}
+.sw{flex:none;width:52px;height:30px;border-radius:15px;background:#C9CFDD;border:none;position:relative;cursor:pointer;transition:.2s}
+.sw::after{content:'';position:absolute;top:3px;left:3px;width:24px;height:24px;border-radius:50%;background:#fff;box-shadow:0 1px 4px rgba(0,0,0,.25);transition:.2s}
+.sw.on{background:var(--green)}
+.sw.on::after{left:25px}
+.set-btns{display:flex;flex-direction:column;gap:.5rem}
+.set-btns .btn{width:100%;padding:.7rem}
+.usr-row{display:flex;align-items:center;gap:.5rem;padding:.4rem 0;border-bottom:1px solid var(--border)}
+.usr-n{flex:1;font-weight:700;font-size:.9rem}
+.usr-pin{font-family:ui-monospace,Menlo,monospace;font-weight:700;letter-spacing:.15em;color:var(--navy);background:var(--bg);border-radius:8px;padding:.2rem .5rem;font-size:.9rem}
+.usr-b{flex:none;width:2rem;height:2rem;border-radius:50%;border:1.5px solid var(--border);background:#fff;color:var(--navy);cursor:pointer;font-size:.8rem}
+.usr-b.del{border-color:var(--red);color:var(--red)}
+.usr-b.ph{visibility:hidden;cursor:default}
+.exp-tag{font-size:.62rem;font-weight:800;background:var(--accent);color:#1B2A4A;border-radius:6px;padding:.05rem .35rem;margin-left:.3rem;vertical-align:middle;text-transform:uppercase}
+.frm-lb{display:block;text-align:left;font-size:.75rem;font-weight:700;color:var(--muted);margin:.2rem 0 .25rem}
+.frm-in{width:100%;border:1.5px solid var(--border);border-radius:10px;padding:.65rem;font:inherit;font-size:1rem;margin-bottom:.4rem}
+.frm-err{color:var(--red);font-size:.8rem;font-weight:600;min-height:1.1rem;margin-bottom:.5rem}
+.chip{border:1.5px solid var(--border);background:#fff;border-radius:16px;padding:.3rem .65rem;font:inherit;font-size:.8rem;font-weight:700;color:var(--navy);cursor:pointer}
+.chip.on{background:var(--navy);border-color:var(--navy);color:#fff}
+.cmp-rcp{display:flex;flex-wrap:wrap;gap:.35rem;margin-bottom:.6rem}
+textarea.frm-in{resize:vertical;min-height:90px}
+.msg-body{color:#1B2A4A !important;font-size:1rem !important;white-space:pre-wrap;word-break:break-word}
+.msg-it{border-bottom:1px solid var(--border);padding:.5rem 0}
+.msg-hd{display:flex;align-items:center;gap:.5rem;cursor:pointer}
+.msg-hd .t{flex:1;font-size:.86rem;font-weight:600;min-width:0}
+.msg-hd .t small{display:block;font-weight:400;color:var(--muted);font-size:.72rem}
+.msg-cnt{flex:none;font-size:.75rem;font-weight:800;background:var(--bg);border-radius:10px;padding:.15rem .5rem;color:var(--navy)}
+.msg-dt{margin:.4rem 0 0;font-size:.8rem}
+.msg-dt div{display:flex;justify-content:space-between;gap:.5rem;padding:.15rem 0}
+.msg-dt .ok{color:var(--green)}.msg-dt .sn{color:#B7791F}.msg-dt .no{color:var(--muted)}
+.chip.sm{padding:.2rem .55rem;font-size:.74rem}
+.usr-it{border-bottom:1px solid var(--border);padding:.25rem 0}
+.usr-it .usr-row{border:none;padding-bottom:.2rem}
+.usr-perms{display:flex;gap:.35rem;flex-wrap:wrap;padding:0 0 .3rem}
+.usr-all{font-size:.74rem;color:var(--muted);font-weight:600}
+#view-settings:not(.owner) .own-only{display:none}
+.dlg-ov{display:none;position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:11000;align-items:center;justify-content:center;padding:1rem}
+.dlg-ov.show{display:flex}
+.dlg-box{background:#fff;border-radius:20px;width:100%;max-width:340px;padding:1.5rem 1.2rem 1.2rem;text-align:center;animation:dutyPop .2s ease-out}
+.dlg-ico{font-size:2.4rem;line-height:1;margin-bottom:.6rem;color:var(--navy)}
+.dlg-ico.danger{color:var(--red)}
+.dlg-box h3{font-size:1.15rem;font-weight:800;margin-bottom:.4rem}
+.dlg-box p{font-size:.9rem;color:var(--muted);margin-bottom:1.1rem;line-height:1.4}
+.dlg-btns{display:flex;gap:.5rem}
+.dlg-btns .btn{flex:1;padding:.7rem .5rem;font-size:.9rem}
+.admin-box{border:1.5px dashed var(--accent);border-radius:12px;padding:.6rem;margin-top:.5rem;background:#FFFBEF}
+.admin-box select{width:100%;border:1.5px solid var(--border);border-radius:10px;padding:.5rem;font-size:.88rem;font-family:inherit;margin-bottom:.4rem;background:#fff}
+.btn-o{background:var(--accent);color:#1B2A4A}
+.btn-add{background:#fff;border:1.5px solid var(--accent);color:#8A5A0F}
+.btn-add.open{background:#FFF3D9}
+.btn-x{background:#fff;border:1.5px solid var(--red);color:var(--red)}
+.duty-ov{display:none;position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:400;align-items:center;justify-content:center;padding:1rem}
+.duty-ov.show{display:flex}
+.duty-box{background:#fff;border-radius:20px;width:100%;max-width:340px;padding:1.6rem 1.2rem 1.2rem;text-align:center;animation:dutyPop .25s ease-out}
+.duty-ico{font-size:2.6rem;line-height:1;margin-bottom:.6rem;color:var(--green)}
+.duty-box h3{font-size:1.25rem;font-weight:800;margin-bottom:.4rem}
+.duty-box p{font-size:.9rem;color:var(--muted);margin-bottom:.7rem}
+.duty-shifts{display:flex;gap:.4rem;justify-content:center;flex-wrap:wrap;margin-bottom:1rem}
+.duty-shifts span{background:#DDF7E8;color:#0F7A44;font-weight:800;font-size:.85rem;padding:.3rem .8rem;border-radius:20px}
+@keyframes dutyPop{from{transform:scale(.9);opacity:0}to{transform:scale(1);opacity:1}}
+.notif-ov{display:none;position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:500;align-items:center;justify-content:center;padding:1rem}
+.notif-ov.show{display:flex}
+.notif-box{background:#fff;border-radius:18px;width:100%;max-width:400px;padding:1.2rem;max-height:85vh;overflow-y:auto}
+.notif-box h3{font-size:1.05rem;font-weight:800;margin-bottom:.7rem}
+.bell{position:relative;background:rgba(255,255,255,.15);border:none;color:#fff;border-radius:20px;padding:.25rem .6rem;font-size:1rem;cursor:pointer;display:none}
+.bell.show{display:inline-block}
+.bell .cnt{position:absolute;top:-5px;right:-5px;background:var(--red);color:#fff;font-size:.65rem;font-weight:800;min-width:1.1rem;height:1.1rem;border-radius:.6rem;padding:0 .25rem;display:none;align-items:center;justify-content:center}
+.bell .cnt.show{display:flex}
+.news-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:.7rem}.news-head h3{margin:0}.news-x{background:var(--bg);border:none;border-radius:50%;width:2rem;height:2rem;font-size:1rem;font-weight:700;color:var(--navy);cursor:pointer;line-height:1}
+.stats-tabs{display:flex;gap:.4rem;margin-bottom:.6rem}
+.stats-tabs button{flex:1;border:1.5px solid var(--border);background:#fff;border-radius:10px;padding:.4rem .3rem;font:inherit;font-size:.8rem;font-weight:700;color:var(--navy);cursor:pointer}
+.stats-tabs button.on{background:var(--navy);border-color:var(--navy);color:#fff}
+.stats-t{width:100%;border-collapse:collapse;font-size:.86rem;margin-bottom:.4rem}
+.stats-t th{font-size:.7rem;text-transform:uppercase;letter-spacing:.03em;color:var(--muted);text-align:center;padding:.25rem .2rem;border-bottom:1.5px solid var(--border)}
+.stats-t th:first-child,.stats-t td:first-child{text-align:left}
+.stats-t td{text-align:center;padding:.38rem .2rem;border-bottom:1px solid var(--border)}
+.stats-t td.tot{font-weight:800;color:var(--navy)}
+.stats-t tr.zero td{opacity:.45}
+.stats-t tr.me td:first-child{font-weight:800}
+.notif-time{font-size:.72rem;opacity:.65;margin-top:.15rem}
+.newtag{font-size:.65rem;font-weight:800;background:var(--navy);color:#fff;border-radius:6px;padding:.05rem .35rem;margin-right:.25rem}
+.install-ov{display:none;position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:10000;align-items:flex-end;justify-content:center}
+.install-ov.show{display:flex}
+.install-box{background:#fff;border-radius:20px 20px 0 0;width:100%;max-width:520px;padding:1.4rem 1.2rem calc(1.6rem + env(safe-area-inset-bottom));text-align:center;animation:dutyPop .25s ease-out}
+.install-box img{width:72px;height:72px;border-radius:16px;box-shadow:0 4px 14px rgba(0,0,0,.2);margin-bottom:.7rem}
+.install-box h3{font-size:1.2rem;font-weight:800;margin-bottom:.3rem}
+.install-box p{font-size:.88rem;color:var(--muted);margin-bottom:1rem;line-height:1.4}
+.install-steps{text-align:left;background:var(--bg);border-radius:12px;padding:.8rem .9rem;margin-bottom:1rem;font-size:.88rem;line-height:1.6;display:none}
+.install-steps i{color:var(--navy);margin:0 .15em}
+.install-box .btn{width:100%;padding:.75rem;font-size:.95rem}
+.install-box .btn-l{margin-top:.5rem}
+.notif-item.ok{background:#DDF7E8;border-left-color:var(--green)}
+.notif-item.rm{background:#FDE6E6;border-left-color:var(--red)}
+.notif-item{background:#FFF3D9;border-left:4px solid var(--accent);border-radius:10px;padding:.55rem .7rem;margin-bottom:.5rem;font-size:.88rem;line-height:1.35}
+@media(min-width:700px){.grid{max-width:560px;margin:0 auto}.weekdays{max-width:560px;margin:0 auto}}
+</style>
+</head>
+<body>
+
+<header>
+  <h1>Dyżury</h1>
+  <div class="hdr-right">
+    <button class="bell" id="stats-btn" onclick="openStats()" aria-label="Statystyki"><i class="fa-solid fa-chart-column"></i></button>
+    <button class="bell" id="news-bell" onclick="openNews()" aria-label="Nowości"><i class="fa-solid fa-bell"></i><span class="cnt" id="news-cnt"></span></button>
+    <div id="user-badge" onclick="logout()" title="Kliknij, aby się wylogować"></div>
+  </div>
+</header>
+
+<div class="admin-tabs" id="admin-tabs">
+  <button id="tab-cal" class="on" onclick="setView('cal')"><i class="fa-solid fa-calendar-days sp"></i>Kalendarz</button>
+  <button id="tab-set" onclick="setView('set')"><i class="fa-solid fa-gear sp"></i>Ustawienia</button>
+</div>
+<div id="view-cal">
+<div class="cal-nav">
+  <button onclick="changeMonth(-1)"><i class="fa-solid fa-chevron-left"></i></button>
+  <div id="month-label"></div>
+  <button onclick="changeMonth(1)"><i class="fa-solid fa-chevron-right"></i></button>
+</div>
+<div class="weekdays"><span>Pn</span><span>Wt</span><span>Śr</span><span>Cz</span><span>Pt</span><span>So</span><span>Nd</span></div>
+<div class="grid" id="grid"></div>
+<div class="legend">
+  <span><i style="background:var(--green)"></i>ktoś wpisany</span>
+  <span><i style="background:#FFF3D9;border:1px solid #E8A73A"></i>dziś</span>
+  <span><i style="background:#fff;box-shadow:0 0 0 2px var(--navy)"></i>jesteś wpisany/a</span>
+</div>
+</div>
+
+<div id="view-settings">
+  <div class="set-card own-only">
+    <h4>Widok dnia</h4>
+    <div class="set-row">
+      <div><b>Rozszerzony widok admina</b><small id="set-adminview-info">Wyłączony — widok dnia jak u zwykłego użytkownika.</small></div>
+      <button class="sw" id="sw-adminview" onclick="toggleAdminView()" aria-label="Rozszerzony widok admina"></button>
+    </div>
+  </div>
+  <div class="set-card own-only">
+    <h4>Godziny zamknięcia zapisów</h4>
+    <div class="set-row">
+      <div><b id="set-cutoff-info"></b><small>Od tej godziny nie można już zapisać się ani wypisać na dzisiejszą porę.</small></div>
+      <button class="usr-b" onclick="editCutoff()" aria-label="Zmień godziny"><i class="fa-solid fa-pen"></i></button>
+    </div>
+  </div>
+  <div class="set-card own-only">
+    <h4>Aplikacja</h4>
+    <div class="set-row">
+      <div><b>Popup o instalacji aplikacji</b><small id="set-install-info">Wyłączony — nikt poza Tobą go nie zobaczy.</small></div>
+      <button class="sw" id="sw-install" onclick="toggleInstallPopup()" aria-label="Popup o instalacji"></button>
+    </div>
+  </div>
+  <div id="msg-card"></div>
+  <div class="set-card own-only">
+    <h4>Eksperymentalne</h4>
+    <div class="set-row">
+      <div><b>Alert o pustych porach<span class="exp-tag">beta</span></b><small id="set-empty-info">Wyłączony.</small></div>
+      <button class="sw" id="sw-empty" onclick="toggleEmptyAlerts()" aria-label="Alert o pustych porach"></button>
+    </div>
+  </div>
+  <div id="users-card" class="own-only"></div>
+  <div class="set-card own-only">
+    <h4>Dane</h4>
+    <div class="set-btns">
+      <button class="btn btn-x" onclick="adminWipeMonth()"><i class="fa-solid fa-calendar-xmark sp"></i>Usuń cały wyświetlany miesiąc</button>
+      <button class="btn btn-d" onclick="adminWipeAll()"><i class="fa-solid fa-trash sp"></i>Usuń wszystkie dane</button>
+    </div>
+  </div>
+</div>
+
+<div class="overlay" id="day-overlay">
+  <div class="sheet"><div class="handle"></div><div id="day-content"></div></div>
+</div>
+
+<div class="notif-ov" id="stats-ov" onclick="if(event.target===this)closeStats()"><div class="notif-box">
+  <div class="news-head"><h3><i class="fa-solid fa-chart-column sp"></i>Statystyki dyżurów</h3><button class="news-x" onclick="closeStats()" aria-label="Zamknij"><i class="fa-solid fa-xmark"></i></button></div>
+  <div class="stats-tabs"><button id="st-tab-all" class="on" onclick="setStatsTab('all')">Łącznie</button><button id="st-tab-month" onclick="setStatsTab('month')">Miesiąc</button></div>
+  <div id="stats-list"></div>
+  <button class="btn btn-p" style="width:100%;margin-top:.4rem" onclick="closeStats()">Zamknij</button>
+</div></div>
+
+<div class="notif-ov" id="news-ov" onclick="if(event.target===this)closeNews()"><div class="notif-box">
+  <div class="news-head"><h3><i class="fa-solid fa-bell sp"></i><span id="news-title">Nowości</span></h3><button class="news-x" onclick="closeNews()" aria-label="Zamknij"><i class="fa-solid fa-xmark"></i></button></div>
+  <div id="news-list"></div>
+  <button class="btn btn-p" style="width:100%;margin-top:.4rem" onclick="closeNews()">Zamknij</button>
+</div></div>
+
+<div class="duty-ov" id="duty-ov" onclick="if(event.target===this)closeDuty()"><div class="duty-box">
+  <div class="duty-ico"><i class="fa-solid fa-calendar-check"></i></div>
+  <h3 id="duty-title">Masz dziś dyżur!</h3>
+  <p id="duty-date"></p>
+  <div class="duty-shifts" id="duty-shifts"></div>
+  <button class="btn btn-g" style="width:100%" onclick="closeDuty()">OK</button>
+</div></div>
+
+<div class="notif-ov" id="notif-ov"><div class="notif-box">
+  <h3><i class="fa-solid fa-bell sp"></i>Zmiany w Twoich dyżurach</h3>
+  <div id="notif-list"></div>
+  <button class="btn btn-p" style="width:100%;margin-top:.4rem" onclick="ackNotifs()">OK</button>
+</div></div>
+
+<div class="notif-ov" id="seen-ov"><div class="notif-box">
+  <h3><i class="fa-solid fa-eye sp"></i>Zmiany zostały zobaczone</h3>
+  <div id="seen-list"></div>
+  <button class="btn btn-p" style="width:100%;margin-top:.4rem" onclick="ackSeen()">OK</button>
+</div></div>
+
+<div class="install-ov" id="install-ov"><div class="install-box">
+  <img src="icon-192.png" alt="Dyżury">
+  <h3>Zainstaluj aplikację Dyżury</h3>
+  <p id="install-text">Dodaj Dyżury do ekranu głównego – będą otwierać się jak zwykła aplikacja, bez paska przeglądarki.</p>
+  <div class="install-steps" id="install-steps">
+    <div>1. Stuknij <b>Udostępnij</b> <i class="fa-solid fa-arrow-up-from-bracket"></i> na dole (lub u góry) ekranu Safari.</div>
+    <div>2. Wybierz <b>Dodaj do ekranu początkowego</b> <i class="fa-regular fa-square-plus"></i>.</div>
+    <div>3. Stuknij <b>Dodaj</b>.</div>
+  </div>
+  <div class="install-steps" id="install-steps-ff">
+    <div>1. Stuknij menu <b>⋮</b> (trzy kropki) w Firefoxie.</div>
+    <div>2. Wybierz <b>Zainstaluj</b> <i class="fa-solid fa-download"></i> (lub <b>Dodaj do ekranu głównego</b>).</div>
+    <div>3. Potwierdź przyciskiem <b>Dodaj</b>.</div>
+  </div>
+  <button class="btn btn-g" id="install-btn" onclick="doInstall()"><i class="fa-solid fa-download sp"></i>Zainstaluj</button>
+  <button class="btn btn-l" onclick="closeInstall(true,'dismissed')">Nie teraz</button>
+</div></div>
+
+<div class="dlg-ov" id="dlg-ov"><div class="dlg-box">
+  <div class="dlg-ico" id="dlg-ico"><i class="fa-solid fa-circle-question"></i></div>
+  <h3 id="dlg-title"></h3>
+  <p id="dlg-text"></p>
+  <div class="dlg-btns">
+    <button class="btn btn-l" id="dlg-no">Anuluj</button>
+    <button class="btn btn-g" id="dlg-yes">OK</button>
+  </div>
+</div></div>
+
+<div class="dlg-ov" id="frm-ov"><div class="dlg-box">
+  <h3 id="frm-title"></h3>
+  <div id="frm-fields"></div>
+  <div class="frm-err" id="frm-err"></div>
+  <div class="dlg-btns">
+    <button class="btn btn-l" id="frm-no">Anuluj</button>
+    <button class="btn btn-g" id="frm-yes">Dalej</button>
+  </div>
+</div></div>
+
+<div class="dlg-ov" id="cmp-ov"><div class="dlg-box" style="text-align:left">
+  <h3 style="text-align:center;margin-bottom:.7rem">Nowa wiadomość</h3>
+  <label class="frm-lb" for="cmp-text">Treść (możesz użyć {imię})</label>
+  <textarea class="frm-in" id="cmp-text" maxlength="500" placeholder="Np. Cześć {imię}, pamiętaj o…"></textarea>
+  <label class="frm-lb">Odbiorcy — <span id="cmp-cnt"></span></label>
+  <div class="cmp-rcp" id="cmp-rcp"></div>
+  <div class="frm-err" id="cmp-err"></div>
+  <div class="dlg-btns">
+    <button class="btn btn-l" onclick="cmpCancel()">Anuluj</button>
+    <button class="btn btn-g" onclick="cmpSend()">Dalej</button>
+  </div>
+</div></div>
+
+<div class="dlg-ov" id="msg-ov" style="z-index:12000"><div class="dlg-box">
+  <div class="dlg-ico"><i class="fa-solid fa-envelope-open-text"></i></div>
+  <h3>Wiadomość</h3>
+  <p class="msg-body" id="msg-text"></p>
+  <div class="dlg-btns"><button class="btn btn-g" id="msg-ok">OK</button></div>
+</div></div>
+
+<div class="toast" id="toast"></div>
+
+<!-- PIN -->
+<div class="pin-screen" id="pin-screen">
+  <div class="pin-title"> </div>
+  <div class="pin-sub"> </div>
+  <div class="pin-dots">
+    <div class="pin-dot" id="pd0"></div><div class="pin-dot" id="pd1"></div>
+    <div class="pin-dot" id="pd2"></div><div class="pin-dot" id="pd3"></div>
+  </div>
+  <div class="pin-error" id="pin-error"></div>
+  <div class="pin-pad">
+    <button class="pin-btn" onclick="pinKey('1')">1</button><button class="pin-btn" onclick="pinKey('2')">2</button><button class="pin-btn" onclick="pinKey('3')">3</button>
+    <button class="pin-btn" onclick="pinKey('4')">4</button><button class="pin-btn" onclick="pinKey('5')">5</button><button class="pin-btn" onclick="pinKey('6')">6</button>
+    <button class="pin-btn" onclick="pinKey('7')">7</button><button class="pin-btn" onclick="pinKey('8')">8</button><button class="pin-btn" onclick="pinKey('9')">9</button>
+    <button class="pin-btn empty"></button><button class="pin-btn" onclick="pinKey('0')">0</button><button class="pin-btn" onclick="pinDel()"><i class="fa-solid fa-delete-left"></i></button>
+  </div>
+</div>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-app.js";
+import { getFirestore, collection, doc, setDoc, updateDoc, deleteDoc, getDocs, getDoc, writeBatch, onSnapshot, query, where }
+  from "https://www.gstatic.com/firebasejs/12.15.0/firebase-firestore.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyBOGm3N-8zPtjvVv7hx1F-jqFpBU-dD7RY",
+  authDomain: "rezerwacja-af82e.firebaseapp.com",
+  projectId: "rezerwacja-af82e",
+  storageBucket: "rezerwacja-af82e.firebasestorage.app",
+  messagingSenderId: "316318620114",
+  appId: "1:316318620114:web:453d19957ab0af4f8b100b"
+};
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+const COL = 'dyzury';
+
+// Skróty SHA-256 ("dyzury:" + PIN) — PIN-y nie leżą w kodzie jawnym.
+const USERS = [
+  {id:"u1",name:"Beata M",hash:"0378924c08620ae18151fc4a3e6ae3a9e9b43b10f5d6308306cbced3f8527bf0"},
+  {id:"u2",name:"Beata S",hash:"5e42002668a48c93bd20f658106f96c8ee6ddfb41f4dc37252b5cbc0fbd21146"},
+  {id:"u3",name:"Damian",hash:"e6ec3ee57bc5af329b92e8157284f5c1c708e1e7e433f6a2fbb1c8245685d164"},
+  {id:"u4",name:"Emilia",hash:"60daf87f871fde131470ca83180764bf6bcf540bac83e785ca90d9c5b0718cae"},
+  {id:"u5",name:"Grzegorz",hash:"5cccb8422e93cccd919d3e9b96d742e92ecf1b8a36f030a97c4cdc36fb3c9d82"},
+  {id:"u6",name:"Jagoda",hash:"850622a3ca98952f38666870e57e74499b7e8bb3437501e0bdc2e170f41baee8"},
+  {id:"u7",name:"Kasia",hash:"5e68fbcc1e79b61ff04454a51afc842e335c58ae7c96f15a8d4540ad470b21bd"},
+  {id:"u8",name:"Magda",hash:"f882d72f94a630bf542397233d901a13fe02c671756dbca9ba6dfd7f375f858a"},
+  {id:"u9",name:"Monika",hash:"bb1f648fc4f0f90167e2194b3b76f83074b1d13a8a6b75606803bc560e7fdaf0"},
+  {id:"u10",name:"Ola",hash:"42a69ef6abff3ddddb7b46b6a37048f71be835baef99a3e3929e1285d0ea21b8"},
+  {id:"u11",name:"Patrycja",hash:"08391494ccc44956aa4f78146c3513b6967c2388b7745bb285456d984f6d14c2"}
+];
+const SHIFTS = [
+  {key:'rano', label:'Rano'},
+  {key:'popoludnie', label:'Popołudnie'},
+  {key:'wieczor', label:'Wieczór'}
+];
+
+const ADMIN_ID = 'u5';          // Grzegorz Wiśniewski — pełny admin (też usuwanie bez śladu)
+const VIEWER_ID = 'u3';         // Damian Szank — tylko podgląd dzwonka (Nowości) i godzin dodania, bez edycji
+const MANAGER_ID = 'u10';       // Ola Prorok — dodaje i wypisuje wszystkich
+let me = null;                 // {id,name}
+let entries = {};              // id -> wpis (bieżący miesiąc)
+let selDate = null;
+const openAdd = new Set();    // pory z rozwiniętą listą "Dodaj osobę"
+const now = new Date();
+let calYear = now.getFullYear(), calMonth = now.getMonth();
+let unsub = null;
+
+const pad2 = n => n<10 ? '0'+n : ''+n;
+const ymd = d => d.getFullYear()+'-'+pad2(d.getMonth()+1)+'-'+pad2(d.getDate());
+const todayStr = () => ymd(new Date());
+const uid = () => Date.now().toString(36)+Math.random().toString(36).slice(2,6);
+const esc = s => String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+window.toast = msg => {const t=document.getElementById('toast');t.innerHTML=esc(msg).replace(' ✓',' <i class="fa-solid fa-check"></i>');t.classList.add('show');setTimeout(()=>t.classList.remove('show'),2300)};
+
+// ─── LISTA UŻYTKOWNIKÓW z Firestore (dyzury/settings_users); wbudowana lista = zapas ───
+const sha256Hex = async t => {
+  const d = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(t));
+  return Array.from(new Uint8Array(d)).map(b=>b.toString(16).padStart(2,'0')).join('');
+};
+const pinHash = pin => sha256Hex('dyzury:'+pin);
+window.__dyzuryUsers = USERS;
+window.__usersReady = new Promise(res=>{
+  onSnapshot(doc(db,COL,'settings_users'), snap=>{
+    if(snap.exists()){
+      const l = snap.data().list;
+      if(Array.isArray(l) && l.length){
+        USERS.splice(0, USERS.length, ...l);
+        if(me && !USERS.some(u=>u.id===me.id)){ try{sessionStorage.removeItem('dyzury_user')}catch(e){} location.reload(); return; }
+        onUsersChanged();
+      }
+    }
+    res();
+  }, err=>{ console.error(err); res(); });
+});
+function onUsersChanged(){
+  if(!me) return;
+  syncAdminUI(); syncBell(); subscribeNews(); updateNewsBadge();
+  const mu = USERS.find(u=>u.id===me.id);
+  if(mu && mu.name!==me.name){
+    me.name = mu.name;
+    document.getElementById('user-badge').innerHTML = '<i class="fa-solid fa-cat sp"></i>'+esc(me.name);
+    subscribeSeen();
+  }
+  renderCalendar();
+  if(document.getElementById('day-overlay').classList.contains('show')) renderDay();
+  renderSettings();
+}
+
+// ─── WŁASNY FORMULARZ (zamiast prompt()) ───
+window.askForm = o => new Promise(res=>{
+  const ov = document.getElementById('frm-ov');
+  const yes = document.getElementById('frm-yes'), no = document.getElementById('frm-no');
+  const err = document.getElementById('frm-err');
+  document.getElementById('frm-title').textContent = o.title;
+  err.textContent = '';
+  document.getElementById('frm-fields').innerHTML = o.fields.map(f=>
+    `<label class="frm-lb" for="frm-f-${f.key}">${esc(f.label)}</label><input class="frm-in" id="frm-f-${f.key}" type="text" ${f.numeric?'inputmode="numeric" pattern="[0-9]*"':''} maxlength="${f.max||30}" autocomplete="off" value="${esc(f.value||'')}">`).join('');
+  o.fields.filter(f=>f.numeric).forEach(f=>{
+    const el = document.getElementById('frm-f-'+f.key);
+    el.addEventListener('input',()=>{ el.value = el.value.replace(/\D/g,''); });
+  });
+  yes.textContent = o.ok || 'Dalej';
+  const done = v => { ov.classList.remove('show'); yes.onclick = no.onclick = ov.onclick = null; res(v); };
+  yes.onclick = () => {
+    const v = {}; o.fields.forEach(f=>v[f.key] = document.getElementById('frm-f-'+f.key).value.trim());
+    const e = o.validate ? o.validate(v) : '';
+    if(e){ err.textContent = e; return; }
+    done(v);
+  };
+  no.onclick = () => done(null);
+  ov.onclick = e => { if(e.target===ov) done(null); };
+  ov.classList.add('show');
+  setTimeout(()=>{ const f = document.getElementById('frm-f-'+o.fields[0].key); if(f) f.focus(); }, 60);
+});
+
+// ─── WŁASNE OKNO POTWIERDZENIA (zamiast confirm() z przeglądarki) ───
+window.askConfirm = (text, o={}) => new Promise(res=>{
+  const ov = document.getElementById('dlg-ov');
+  const yes = document.getElementById('dlg-yes'), no = document.getElementById('dlg-no');
+  document.getElementById('dlg-title').textContent = o.title || 'Czy na pewno?';
+  document.getElementById('dlg-text').textContent = text;
+  const ico = document.getElementById('dlg-ico');
+  ico.className = 'dlg-ico'+(o.danger?' danger':'');
+  ico.innerHTML = '<i class="fa-solid '+(o.danger?'fa-triangle-exclamation':'fa-circle-question')+'"></i>';
+  yes.textContent = o.ok || 'OK';
+  yes.className = 'btn '+(o.danger?'btn-d':'btn-g');
+  const done = v => { ov.classList.remove('show'); yes.onclick = no.onclick = ov.onclick = null; res(v); };
+  yes.onclick = () => done(true);
+  no.onclick = () => done(false);
+  ov.onclick = e => { if(e.target===ov) done(false); };
+  ov.classList.add('show');
+});
+
+// ─── DANE ───
+function subscribeMonth(){
+  if(unsub) unsub();
+  const start = `${calYear}-${pad2(calMonth+1)}-01`;
+  const end = `${calYear}-${pad2(calMonth+1)}-${pad2(new Date(calYear,calMonth+1,0).getDate())}`;
+  // Pobieramy trochę szerszy zakres (dni z sąsiednich miesięcy widoczne w siatce)
+  const s = new Date(calYear,calMonth,1); s.setDate(s.getDate()-7);
+  const e = new Date(calYear,calMonth+1,0); e.setDate(e.getDate()+7);
+  const q = query(collection(db,COL), where('date','>=',ymd(s)), where('date','<=',ymd(e)));
+  unsub = onSnapshot(q, snap=>{
+    entries = {};
+    snap.forEach(d => entries[d.id] = d.data());
+    renderCalendar();
+    if(document.getElementById('day-overlay').classList.contains('show')) renderDay();
+  }, err=>{ console.error(err); toast('Błąd połączenia z bazą'); });
+}
+const entriesFor = (date, shift) =>
+  Object.values(entries).filter(e=>e.date===date && (!shift || e.shift===shift))
+        .sort((a,b)=>(a.createdAt||'').localeCompare(b.createdAt||''));
+const activeFor = date => Object.values(entries).filter(e=>e.date===date && !e.removed);
+
+// ─── POWIADOMIENIA O WPISANIU PRZEZ INNĄ OSOBĘ ───
+let unsubNotif = null;
+let pendingNotifs = [];
+const ackedLocal = new Set();
+function subscribeNotifs(){
+  if(unsubNotif) unsubNotif();
+  const q = query(collection(db,COL), where('userId','==',me.id));
+  unsubNotif = onSnapshot(q, snap=>{
+    const today = todayStr();
+    pendingNotifs = [];
+    snap.forEach(d=>{
+      const e = d.data();
+      if(e.date<today) return;
+      if(!e.removed && !e.seen && e.addedBy && e.addedBy!==e.name && !ackedLocal.has(e.id+':add')) pendingNotifs.push({...e,_t:'add'});
+      else if(e.removed && !e.removalSeen && e.removedBy && e.removedBy!==e.name && !ackedLocal.has(e.id+':rm')) pendingNotifs.push({...e,_t:'rm'});
+    });
+    pendingNotifs.sort((a,b)=>a.date.localeCompare(b.date));
+    renderNotifs();
+    if(!dutyChecked){
+      dutyChecked = true;
+      const mine = [];
+      snap.forEach(d=>{ const e=d.data(); if(!e.removed && dutyVisible(e)) mine.push(e); });
+      showDuty(mine);
+    }
+  }, err=>console.error(err));
+}
+// ─── POPUP „MASZ DZIŚ DYŻUR” (raz po zalogowaniu) ───
+let dutyChecked = false;
+// Okno widoczności popupu — zmień godziny tutaj:
+// dayOffset 0 = tego samego dnia, -1 = dzień wcześniej (from/to w godzinach, 0–24)
+const DUTY_WINDOWS = {
+  rano:       {showFrom:{day:-1, h:16}, showUntil:{day:0, h:12}},
+  popoludnie: {showFrom:{day:-1,  h:19},  showUntil:{day:0, h:15}},
+  wieczor:    {showFrom:{day:0,  h:0},  showUntil:{day:0, h:20}}
+};
+function dutyVisible(e, now=new Date()){
+  const w = DUTY_WINDOWS[e.shift]; if(!w) return false;
+  const [y,m,d] = e.date.split('-').map(Number);
+  const at = o => new Date(y, m-1, d+o.day, o.h, 0, 0);
+  return now >= at(w.showFrom) && now < at(w.showUntil);
+}
+function showDuty(mine){
+  if(!mine.length) return;
+  const order = SHIFTS.map(s=>s.key);
+  const today = todayStr();
+  const sorted = mine.slice().sort((a,b)=>a.date.localeCompare(b.date) || order.indexOf(a.shift)-order.indexOf(b.shift));
+  const seen = new Set();
+  const items = [];
+  sorted.forEach(e=>{
+    const k = e.date+':'+e.shift; if(seen.has(k)) return; seen.add(k);
+    const sh = SHIFTS.find(x=>x.key===e.shift);
+    items.push({date:e.date, label: sh?sh.label:e.shift});
+  });
+  const allToday = items.every(i=>i.date===today);
+  const allLater = items.every(i=>i.date!==today);
+  document.getElementById('duty-title').textContent = allToday ? 'Masz dziś dyżur!' : allLater ? 'Masz jutro dyżur!' : 'Masz dyżur!';
+  const dates = [...new Set(items.map(i=>i.date))];
+  document.getElementById('duty-date').textContent = dates.map(fmtDate).join(' i ');
+  document.getElementById('duty-shifts').innerHTML = items.map(i=>{
+    const pre = dates.length>1 ? (i.date===today?'Dziś · ':'Jutro · ') : '';
+    return `<span>${pre}${esc(i.label)}</span>`;
+  }).join('');
+  document.getElementById('duty-ov').classList.add('show');
+}
+window.closeDuty = () => document.getElementById('duty-ov').classList.remove('show');
+function renderNotifs(){
+  const ov = document.getElementById('notif-ov');
+  if(!pendingNotifs.length){ ov.classList.remove('show'); return; }
+  document.getElementById('notif-list').innerHTML = pendingNotifs.map(e=>{
+    const sh = SHIFTS.find(x=>x.key===e.shift);
+    const shl = sh?sh.label.toLowerCase():esc(e.shift);
+    return e._t==='rm'
+      ? `<div class="notif-item rm"><b>${esc(e.removedBy)}</b> wypisał(a) Cię z dnia <b>${fmtDate(e.date)}</b> z pory: <b>${shl}</b>.</div>`
+      : `<div class="notif-item"><b>${esc(e.addedBy)}</b> wpisał(a) Cię dnia <b>${fmtDate(e.date)}</b> na <b>${shl}</b>.</div>`;
+  }).join('');
+  ov.classList.add('show');
+}
+window.ackNotifs = async () => {
+  const list = pendingNotifs.slice();
+  list.forEach(e=>ackedLocal.add(e.id+':'+e._t));
+  pendingNotifs = []; renderNotifs();
+  try{
+    const batch = writeBatch(db);
+    list.forEach(e=>batch.update(doc(db,COL,e.id), e._t==='rm' ? {removalSeen:true,removalSeenAt:new Date().toISOString()} : {seen:true,seenAt:new Date().toISOString()}));
+    await batch.commit();
+  }catch(err){ console.error(err); }
+};
+
+// ─── POPUP DLA OSOBY DOKONUJĄCEJ ZMIAN (Ola / Grzegorz): „osoba zobaczyła Twoją zmianę” ───
+const canMakeChanges = () => !!me && (me.id===ADMIN_ID || me.id===MANAGER_ID);
+let seenAddsDocs = {}, seenRmDocs = {}, pendingSeen = [];
+const ackedSeenLocal = new Set();
+let unsubSeen = [];
+function subscribeSeen(){
+  unsubSeen.forEach(u=>u()); unsubSeen = [];
+  seenAddsDocs = {}; seenRmDocs = {}; pendingSeen = [];
+  if(!canMakeChanges()) return;
+  unsubSeen.push(onSnapshot(query(collection(db,COL), where('addedBy','==',me.name)), snap=>{
+    seenAddsDocs = {}; snap.forEach(d=>seenAddsDocs[d.id]=d.data()); rebuildSeen();
+  }, err=>console.error(err)));
+  unsubSeen.push(onSnapshot(query(collection(db,COL), where('removedBy','==',me.name)), snap=>{
+    seenRmDocs = {}; snap.forEach(d=>seenRmDocs[d.id]=d.data()); rebuildSeen();
+  }, err=>console.error(err)));
+}
+function rebuildSeen(){
+  const list = [];
+  Object.values(seenAddsDocs).forEach(e=>{
+    // seenAt istnieje tylko dla potwierdzeń zapisanych po wprowadzeniu tej funkcji — brak lawiny starych popupów
+    if(e.userId!==me.id && e.seen && e.seenAt && !e.seenAck && !ackedSeenLocal.has(e.id+':add')) list.push({...e,_t:'add',_at:e.seenAt});
+  });
+  Object.values(seenRmDocs).forEach(e=>{
+    if(e.userId!==me.id && e.removed && e.removalSeen && e.removalSeenAt && !e.removalSeenAck && !ackedSeenLocal.has(e.id+':rm')) list.push({...e,_t:'rm',_at:e.removalSeenAt});
+  });
+  list.sort((a,b)=>a._at.localeCompare(b._at));
+  pendingSeen = list;
+  renderSeen();
+}
+function renderSeen(){
+  const ov = document.getElementById('seen-ov');
+  if(!pendingSeen.length){ ov.classList.remove('show'); return; }
+  document.getElementById('seen-list').innerHTML = pendingSeen.map(e=>{
+    const sh = SHIFTS.find(x=>x.key===e.shift), shl = sh?sh.label.toLowerCase():esc(e.shift);
+    return e._t==='rm'
+      ? `<div class="notif-item ok"><b>${esc(e.name)}</b> zobaczył(a) informację o wypisaniu: <b>${fmtDate(e.date)}</b>, ${shl}.<div class="notif-time">${fmtTs(e._at)}</div></div>`
+      : `<div class="notif-item ok"><b>${esc(e.name)}</b> zobaczył(a) informację o wpisaniu: <b>${fmtDate(e.date)}</b>, ${shl}.<div class="notif-time">${fmtTs(e._at)}</div></div>`;
+  }).join('');
+  ov.classList.add('show');
+}
+window.ackSeen = async () => {
+  const list = pendingSeen.slice();
+  list.forEach(e=>ackedSeenLocal.add(e.id+':'+e._t));
+  pendingSeen = []; renderSeen();
+  try{
+    const batch = writeBatch(db);
+    list.forEach(e=>batch.update(doc(db,COL,e.id), e._t==='rm' ? {removalSeenAck:true} : {seenAck:true}));
+    await batch.commit();
+  }catch(err){ console.error(err); }
+};
+
+// ─── STATYSTYKI: ile razy każda osoba była zapisana na dyżur (Grzegorz i Ola) ───
+let statsEntries = [], statsTab = 'all';
+function initStats(){ const b = document.getElementById('stats-btn'); if(b) b.classList.toggle('show', canMakeChanges()); }
+window.openStats = async () => {
+  if(!canMakeChanges()) return;
+  const lbl = document.getElementById('month-label').textContent.trim();
+  document.getElementById('st-tab-month').textContent = lbl || 'Miesiąc';
+  document.getElementById('stats-ov').classList.add('show');
+  document.getElementById('stats-list').innerHTML = '<div class="notif-item" style="background:var(--bg);border-left-color:#ccc">Ładowanie…</div>';
+  try{
+    const snap = await getDocs(query(collection(db,COL), where('date','>=','2000-01-01')));
+    statsEntries = [];
+    snap.forEach(d=>{ const e = d.data(); if(!e.removed && e.userId) statsEntries.push(e); });
+    renderStats();
+  }catch(err){
+    console.error(err);
+    document.getElementById('stats-list').innerHTML = '<div class="notif-item">Nie udało się pobrać statystyk.</div>';
+  }
+};
+window.closeStats = () => document.getElementById('stats-ov').classList.remove('show');
+window.setStatsTab = t => { statsTab = t; renderStats(); };
+function renderStats(){
+  document.getElementById('st-tab-all').classList.toggle('on', statsTab==='all');
+  document.getElementById('st-tab-month').classList.toggle('on', statsTab==='month');
+  const prefix = `${calYear}-${pad2(calMonth+1)}`;
+  const list = statsTab==='month' ? statsEntries.filter(e=>(e.date||'').startsWith(prefix)) : statsEntries;
+  const rows = USERS.map(u=>{
+    const mine = list.filter(e=>e.userId===u.id);
+    const by = k => mine.filter(e=>e.shift===k).length;
+    return {u, r:by('rano'), p:by('popoludnie'), w:by('wieczor'), tot:mine.length};
+  }).sort((a,b)=>b.tot-a.tot || a.u.name.localeCompare(b.u.name,'pl'));
+  const sum = rows.reduce((a,x)=>a+x.tot,0);
+  document.getElementById('stats-list').innerHTML = `<table class="stats-t">
+    <tr><th>Osoba</th><th>Rano</th><th>Pop.</th><th>Wiecz.</th><th>Razem</th></tr>
+    ${rows.map(x=>`<tr class="${x.tot?'':'zero'} ${x.u.id===me.id?'me':''}"><td>${esc(x.u.name)}</td><td>${x.r}</td><td>${x.p}</td><td>${x.w}</td><td class="tot">${x.tot}</td></tr>`).join('')}
+    <tr><td style="font-weight:800">Suma</td><td></td><td></td><td></td><td class="tot">${sum}</td></tr>
+  </table>
+  <div class="notif-time">Liczone są aktywne zapisy (bez wypisanych), także na przyszłe dni.</div>`;
+}
+
+// ─── ZAPIS: ktoś zobaczył popup o instalacji aplikacji (widoczne w Nowościach tylko u Grzegorza) ───
+window.logPwaSeen = async device => {
+  if(!me || me.id===ADMIN_ID) return;
+  try{
+    const last = +localStorage.getItem('pwa_seen_logged_at')||0;
+    if(Date.now()-last < 24*3600e3) return;   // max raz na dobę z jednego telefonu
+    const id = 'pwa_'+me.id;
+    await setDoc(doc(db,COL,id), {id, pwaUser:me.id, pwaName:me.name, pwaAt:new Date().toISOString(), pwaSeenAt:new Date().toISOString(), pwaDevice:device||''}, {merge:true});
+    localStorage.setItem('pwa_seen_logged_at', String(Date.now()));
+  }catch(e){ console.warn('pwa log', e); }
+};
+
+// action: 'dismissed' (kliknął „Nie teraz”) | 'installed' (zainstalował / uruchomił aplikację z ekranu głównego)
+window.logPwaAction = async (action, device) => {
+  if(!me || me.id===ADMIN_ID) return;
+  try{
+    const id = 'pwa_'+me.id, now = new Date().toISOString();
+    const data = {id, pwaUser:me.id, pwaName:me.name, pwaAt:now};
+    if(device) data.pwaDevice = device;
+    if(action==='dismissed') data.pwaDismissedAt = now;
+    if(action==='installed') data.pwaInstalledAt = now;
+    await setDoc(doc(db,COL,id), data, {merge:true});
+  }catch(e){ console.warn('pwa action', e); }
+};
+
+// ─── NOWOŚCI (dzwonek) — tylko Ola i Grzegorz: zapisy i wypisy wszystkich z ostatnich 14 dni ───
+// Uprawnienia (przy użytkowniku w bazie: perms:{msg,news}); Grzegorz ma wszystkie. Gdy brak zapisu — domyślnie Nowości dla Oli i Damiana.
+const permOf = (u, k) => u.id===ADMIN_ID ? true : (u.perms ? !!u.perms[k] : (k==='news' && (u.id===MANAGER_ID || u.id===VIEWER_ID)));
+const hasPerm = k => !!me && permOf(USERS.find(u=>u.id===me.id) || me, k);
+const canSeeNews = () => hasPerm('news');
+const NEWS_DAYS = 14;
+let newsAdds = {}, newsRms = {}, newsPwa = {}, newsList = [];
+const newsKey = () => 'dyzury_news_seen_'+me.id;
+const getNewsSeen = () => { try{ return localStorage.getItem(newsKey())||''; }catch(e){ return ''; } };
+const setNewsSeen = v => { try{ localStorage.setItem(newsKey(), v); }catch(e){} };
+let newsSubbed = false;
+function subscribeNews(){
+  if(!canSeeNews() || newsSubbed) return;
+  newsSubbed = true;
+  document.getElementById('news-bell').classList.add('show');
+  const cutoff = new Date(Date.now()-NEWS_DAYS*864e5).toISOString();
+  onSnapshot(query(collection(db,COL), where('createdAt','>=',cutoff)), snap=>{
+    newsAdds = {}; snap.forEach(d=>newsAdds[d.id]=d.data()); rebuildNews();
+  }, err=>console.error(err));
+  onSnapshot(query(collection(db,COL), where('removedAt','>=',cutoff)), snap=>{
+    newsRms = {}; snap.forEach(d=>newsRms[d.id]=d.data()); rebuildNews();
+  }, err=>console.error(err));
+  if(me.id===ADMIN_ID){   // informacje o popupie instalacji — tylko Grzegorz
+    onSnapshot(query(collection(db,COL), where('pwaAt','>=',cutoff)), snap=>{
+      newsPwa = {}; snap.forEach(d=>newsPwa[d.id]=d.data()); rebuildNews();
+    }, err=>console.error(err));
+  }
+}
+function rebuildNews(){
+  const list = [];
+  Object.values(newsAdds).forEach(e=>list.push({t:'add',at:e.createdAt,who:e.addedBy||e.name,e}));
+  Object.values(newsRms).forEach(e=>{ if(e.removed) list.push({t:'rm',at:e.removedAt,who:e.removedBy||e.name,e}); });
+  if(me.id===ADMIN_ID) Object.values(newsPwa).forEach(e=>{ if(e.pwaUser!==me.id) list.push({t:'pwa',at:e.pwaAt,who:e.pwaName,e}); });
+  list.sort((a,b)=>b.at.localeCompare(a.at));
+  newsList = list.slice(0,60);
+  updateNewsBadge();
+  if(document.getElementById('news-ov').classList.contains('show')) renderNews(getNewsSeen());
+}
+const isNewsUnread = (n, seen) => n.at > seen && n.who !== me.name;
+function updateNewsBadge(){
+  const seen = getNewsSeen();
+  const as = getAlertSeen();
+  const c = (canSeeNews() ? newsList.filter(n=>isNewsUnread(n,seen)).length : 0) + alertList.filter(a=>!as.has(a.key)).length;
+  const el = document.getElementById('news-cnt');
+  el.textContent = c>99?'99+':c; el.classList.toggle('show', c>0);
+}
+function renderNews(seen){
+  const as = getAlertSeen();
+  const alertsHtml = alertList.map(a=>`<div class="notif-item">${as.has(a.key)?'':'<span class="newtag">NOWE</span>'}<i class="fa-solid fa-triangle-exclamation sp"></i><b>${esc(a.text)}</b></div>`).join('');
+  document.getElementById('news-list').innerHTML = alertsHtml + (newsList.length ? newsList.map(n=>{
+    if(n.t==='pwa'){
+      const tagP = isNewsUnread(n,seen) ? '<span class="newtag">NOWE</span>' : '';
+      const pe = n.e, dev = pe.pwaDevice ? ' ('+esc(pe.pwaDevice)+')' : '';
+      let txt, cls = 'notif-item';
+      if(pe.pwaInstalledAt){ txt = 'zainstalował(a) aplikację'+dev+' ✓'; cls += ' ok'; }
+      else if(pe.pwaDismissedAt && pe.pwaDismissedAt >= (pe.pwaSeenAt||'')) txt = 'zobaczył(a) popup o aplikacji i kliknął(a) „Nie teraz”'+dev;
+      else txt = 'zobaczył(a) popup o aplikacji'+dev+' – jeszcze nie wybrał(a) opcji';
+      return `<div class="${cls}">${tagP}<i class="fa-solid fa-mobile-screen sp"></i><b>${esc(n.who)}</b> ${txt}<div class="notif-time">${fmtTs(n.at)}</div></div>`;
+    }
+    const e = n.e, self = n.who===e.name;
+    const sh = SHIFTS.find(x=>x.key===e.shift), shl = sh?sh.label.toLowerCase():esc(e.shift);
+    const what = n.t==='add'
+      ? (self ? `<b>${esc(n.who)}</b> zapisał/a się` : `<b>${esc(n.who)}</b> dodał <b>${esc(e.name)}</b>`)
+      : (self ? `<b>${esc(n.who)}</b> wypisał/a się` : `<b>${esc(n.who)}</b> usunął <b>${esc(e.name)}</b>`);
+    const tag = isNewsUnread(n,seen) ? '<span class="newtag">NOWE</span>' : '';
+    return `<div class="notif-item ${n.t==='rm'?'rm':''}">${tag}${what} — <b>${fmtDate(e.date)}</b>, ${shl}<div class="notif-time">${fmtTs(n.at)}</div></div>`;
+  }).join('') : (alertList.length ? '' : `<div class="notif-item" style="background:var(--bg);border-left-color:#ccc">${canSeeNews() ? 'Brak zapisów i wypisów z ostatnich '+NEWS_DAYS+' dni.' : 'Brak powiadomień.'}</div>`));
+}
+window.openNews = () => {
+  if(!canSeeNews() && !emptyOn) return;
+  document.getElementById('news-title').textContent = canSeeNews() ? 'Nowości' : 'Powiadomienia';
+  const seen = getNewsSeen();
+  renderNews(seen);
+  document.getElementById('news-ov').classList.add('show');
+  setAlertSeen(alertList.map(a=>a.key));
+  if(newsList.length){ const latest = newsList[0].at; if(latest>seen) setNewsSeen(latest); }
+  updateNewsBadge();
+};
+window.closeNews = () => document.getElementById('news-ov').classList.remove('show');
+
+// ─── KALENDARZ ───
+function renderCalendar(){
+  const mies=['styczeń','luty','marzec','kwiecień','maj','czerwiec','lipiec','sierpień','wrzesień','październik','listopad','grudzień'];
+  document.getElementById('month-label').textContent = mies[calMonth]+' '+calYear;
+  const leading = (new Date(calYear,calMonth,1).getDay()+6)%7;
+  const dim = new Date(calYear,calMonth+1,0).getDate();
+  const cells = Math.ceil((leading+dim)/7)*7;
+  const today = todayStr();
+  let html='';
+  for(let i=0;i<cells;i++){
+    const d = new Date(calYear,calMonth,i-leading+1);
+    const ds = ymd(d);
+    const act = activeFor(ds);
+    const mine = me && act.some(e=>e.userId===me.id);
+    const cls = 'day'+(d.getMonth()===calMonth?'':' other')+(ds<today?' past':'')+(ds===today?' today':'')+(act.length?' has':'')+(mine?' mine':'');
+    html += `<div class="${cls}" onclick="openDay('${ds}')"><b>${d.getDate()}</b>${act.length?`<small>${act.length}</small>`:''}</div>`;
+  }
+  document.getElementById('grid').innerHTML = html;
+}
+window.changeMonth = delta => {
+  calMonth += delta;
+  if(calMonth<0){calMonth=11;calYear--}
+  if(calMonth>11){calMonth=0;calYear++}
+  renderCalendar(); subscribeMonth();
+};
+
+// ─── WIDOK DNIA ───
+window.openDay = ds => { selDate = ds; openAdd.clear(); renderDay(); document.getElementById('day-overlay').classList.add('show'); };
+window.shiftDay = delta => {
+  const [y,m,d] = selDate.split('-').map(Number);
+  const nd = new Date(y,m-1,d+delta);
+  selDate = ymd(nd); openAdd.clear();
+  if(nd.getFullYear()!==calYear || nd.getMonth()!==calMonth){
+    calYear = nd.getFullYear(); calMonth = nd.getMonth();
+    renderCalendar(); subscribeMonth();
+  }
+  renderDay();
+};
+window.closeDay = () => document.getElementById('day-overlay').classList.remove('show');
+
+function fmtDate(ds){
+  const [y,m,d]=ds.split('-').map(Number);
+  const dni=['niedziela','poniedziałek','wtorek','środa','czwartek','piątek','sobota'];
+  const mies=['stycznia','lutego','marca','kwietnia','maja','czerwca','lipca','sierpnia','września','października','listopada','grudnia'];
+  return `${d} ${mies[m-1]} ${y} (${dni[new Date(y,m-1,d).getDay()]})`;
+}
+function fmtTs(iso){
+  if(!iso) return '';
+  const d=new Date(iso); if(isNaN(d)) return '';
+  return d.toLocaleString('pl-PL',{day:'numeric',month:'numeric',hour:'2-digit',minute:'2-digit'});
+}
+
+const openNotes = new Set();   // które notatki są rozwinięte
+const noteDrafts = {};         // niezapisany tekst (przetrwa odświeżenie widoku)
+let adminMode = false;   // rozszerzony widok dnia (przełącznik w Ustawieniach, zapamiętany na urządzeniu)
+const isOwner = () => !!me && me.id === ADMIN_ID;   // Grzegorz: zakładka Ustawienia zawsze dostępna
+const isAdmin = () => isOwner() && adminMode;       // rozszerzone opcje w widoku dnia
+const CUTOFF_DEF = {rano:8, popoludnie:12, wieczor:16};
+const CUTOFF = {...CUTOFF_DEF};   // godzina, od której zapisy na porę dzisiaj są zamknięte (zmieniana w Ustawieniach)
+// Czy edycja danej pory w danym dniu jest zablokowana (dla nie-admina)
+function isLocked(date, shift){
+  if(isAdmin()) return false;
+  const t = todayStr();
+  if(date < t) return true;
+  if(date > t) return false;
+  if(!shift) return false;
+  return new Date().getHours() >= CUTOFF[shift];
+}
+const isManager = () => !!me && (me.id === ADMIN_ID || me.id === MANAGER_ID);   // Grzegorz zawsze ma widok jak Ola; opcje admina tylko z włączonym trybem
+function syncAdminUI(){
+  const canSet = isOwner() || hasPerm('msg');   // Ustawienia: Grzegorz — wszystko; osoba z uprawnieniem — tylko wiadomości
+  document.getElementById('admin-tabs').classList.toggle('show', canSet);
+  document.getElementById('view-settings').classList.toggle('owner', isOwner());
+  if(!canSet) setView('cal');
+  if(!isOwner()) pinsMap = null;
+  renderSettings();
+}
+let curView = 'cal';
+window.setView = v => {
+  curView = (v==='set' && (isOwner() || hasPerm('msg'))) ? 'set' : 'cal';
+  document.getElementById('view-cal').style.display = curView==='cal' ? '' : 'none';
+  document.getElementById('view-settings').style.display = curView==='set' ? 'block' : 'none';
+  document.getElementById('tab-cal').classList.toggle('on', curView==='cal');
+  document.getElementById('tab-set').classList.toggle('on', curView==='set');
+  if(curView==='set'){ renderSettings(); loadPins(); }
+};
+
+// ─── USTAWIENIA APLIKACJI (Firestore: dyzury/settings_app) ───
+let installOn = false, emptyOn = false, alertsInit = false;
+let unsubSettings = null;
+function subscribeSettings(){
+  if(unsubSettings) unsubSettings();
+  unsubSettings = onSnapshot(doc(db,COL,'settings_app'), snap=>{
+    const d = snap.exists() ? snap.data() : {};
+    installOn = d.installPopup === true;
+    const prevEmpty = emptyOn;
+    emptyOn = d.emptyAlerts === true;
+    syncBell();
+    if(!alertsInit || prevEmpty!==emptyOn){ alertsInit = true; subscribeAlerts(); }
+    const cf = d.cutoff || {};
+    Object.keys(CUTOFF_DEF).forEach(k=>{ CUTOFF[k] = (Number.isInteger(cf[k]) && cf[k]>=0 && cf[k]<=24) ? cf[k] : CUTOFF_DEF[k]; });
+    if(me){ renderCalendar(); if(document.getElementById('day-overlay').classList.contains('show')) renderDay(); rebuildAlerts(); }
+    window.__installPopupOn = installOn;
+    window.__installPopupAt = d.installPopupAt || '';
+    renderSettings();
+    window.dispatchEvent(new CustomEvent('install-setting'));
+  }, err=>console.error(err));
+}
+function renderSettings(){
+  const sw = document.getElementById('sw-install'); if(!sw) return;
+  document.getElementById('sw-adminview').classList.toggle('on', adminMode);
+  document.getElementById('set-adminview-info').textContent = adminMode
+    ? 'Włączony — dodawanie i wypisywanie innych, usuwanie bez śladu, brak blokad godzinowych.'
+    : 'Wyłączony — widok dnia jak u zwykłego użytkownika.';
+  document.getElementById('sw-empty').classList.toggle('on', emptyOn);
+  document.getElementById('set-empty-info').textContent = emptyOn
+    ? 'Włączony — dzwoneczek dla wszystkich, pokazuje puste pory na dziś i jutro.'
+    : 'Wyłączony.';
+  document.getElementById('set-cutoff-info').textContent = `Rano ${CUTOFF.rano}:00 · Popołudnie ${CUTOFF.popoludnie}:00 · Wieczór ${CUTOFF.wieczor}:00`;
+  renderUsersCard();
+  renderMsgCard();
+  sw.classList.toggle('on', installOn);
+  document.getElementById('set-install-info').textContent = installOn
+    ? 'Włączony — pozostali użytkownicy zobaczą popup po wpisaniu PIN-u.'
+    : 'Wyłączony — nikt poza Tobą go nie zobaczy.';
+}
+window.toggleEmptyAlerts = async () => {
+  if(!isOwner()) return;
+  const val = !emptyOn;
+  emptyOn = val; renderSettings(); syncBell(); subscribeAlerts();
+  try{
+    await setDoc(doc(db,COL,'settings_app'), {id:'settings_app', emptyAlerts:val, updatedAt:new Date().toISOString(), updatedBy:me.name}, {merge:true});
+    toast(val ? 'Alert o pustych porach włączony ✓' : 'Alert o pustych porach wyłączony');
+  }catch(e){ emptyOn = !val; renderSettings(); syncBell(); subscribeAlerts(); toast('Błąd zapisu — sprawdź połączenie'); }
+};
+
+// ─── EDYTOR UŻYTKOWNIKÓW (dyzury/settings_users = id, imię, skrót; dyzury/settings_pins = PIN-y jawnie, tylko do podglądu przez admina) ───
+let pinsMap = null, pinsLoading = false;
+async function recoverPins(){   // jednorazowo: odtwarza PIN-y z istniejących skrótów (4 cyfry = 10 000 prób)
+  const byHash = new Map(USERS.map(u=>[u.hash,u.id])); const out = {};
+  for(let st=0; st<10000 && Object.keys(out).length<byHash.size; st+=500){
+    const batch = await Promise.all(Array.from({length:500},(_,i)=>{ const pin = String(st+i).padStart(4,'0'); return pinHash(pin).then(h=>[pin,h]); }));
+    batch.forEach(([pin,h])=>{ if(byHash.has(h)) out[byHash.get(h)] = pin; });
+  }
+  return out;
+}
+async function saveUsers(list, pins){
+  const at = new Date().toISOString(), b = writeBatch(db);
+  b.set(doc(db,COL,'settings_users'), {id:'settings_users', list, updatedAt:at});
+  b.set(doc(db,COL,'settings_pins'), {id:'settings_pins', pins, updatedAt:at});
+  await b.commit();
+}
+const plainUsers = () => USERS.map(u=>({id:u.id,name:u.name,hash:u.hash,perms:{msg:permOf(u,'msg'),news:permOf(u,'news')}}));
+async function loadPins(){
+  if(!isOwner() || pinsMap || pinsLoading) return;
+  pinsLoading = true; renderUsersCard();
+  try{
+    const snap = await getDoc(doc(db,COL,'settings_pins'));
+    if(snap.exists()) pinsMap = snap.data().pins || {};
+    else { const rec = await recoverPins(); await saveUsers(plainUsers(), rec); pinsMap = rec; }
+  }catch(e){ console.error(e); toast('Nie udało się wczytać użytkowników'); }
+  pinsLoading = false; renderUsersCard();
+}
+function renderUsersCard(){
+  const el = document.getElementById('users-card'); if(!el) return;
+  if(!isOwner() || curView!=='set'){ el.innerHTML = ''; return; }
+  if(!pinsMap){ el.innerHTML = '<div class="set-card"><h4>Użytkownicy</h4><div class="set-row"><small>Wczytywanie…</small></div></div>'; return; }
+  el.innerHTML = `<div class="set-card"><h4>Użytkownicy</h4>${USERS.map(u=>`<div class="usr-it"><div class="usr-row"><span class="usr-n">${esc(u.name)}</span><span class="usr-pin">${esc(pinsMap[u.id]||'—')}</span><button class="usr-b" onclick="userEdit('${u.id}')" aria-label="Edytuj"><i class="fa-solid fa-pen"></i></button>${u.id===ADMIN_ID?'<span class="usr-b ph"></span>':`<button class="usr-b del" onclick="userDelete('${u.id}')" aria-label="Usuń"><i class="fa-solid fa-trash"></i></button>`}</div><div class="usr-perms">${u.id===ADMIN_ID?'<span class="usr-all">pełne uprawnienia</span>':`<button class="chip sm${permOf(u,'msg')?' on':''}" onclick="userPerm('${u.id}','msg')">Wiadomości</button><button class="chip sm${permOf(u,'news')?' on':''}" onclick="userPerm('${u.id}','news')">Nowości</button>`}</div></div>`).join('')}<button class="btn btn-o" style="width:100%;margin-top:.7rem;padding:.7rem" onclick="userAdd()"><i class="fa-solid fa-user-plus sp"></i>Dodaj użytkownika</button></div>`;
+}
+const pinTakenBy = (pin, exceptId) => Object.entries(pinsMap||{}).find(([id,p])=>p===pin && id!==exceptId);
+const sortUsers = l => l.sort((a,b)=>a.name.localeCompare(b.name,'pl'));
+window.userAdd = async () => {
+  if(!isOwner() || !pinsMap) return;
+  const v = await askForm({title:'Nowy użytkownik', ok:'Dalej', fields:[{key:'name',label:'Imię',max:20},{key:'pin',label:'PIN (4 cyfry)',numeric:true,max:4}],
+    validate: v=>{
+      if(!v.name) return 'Wpisz imię';
+      if(USERS.some(u=>u.name.toLowerCase()===v.name.toLowerCase())) return 'Taka osoba już jest na liście';
+      if(!/^\d{4}$/.test(v.pin)) return 'PIN musi mieć 4 cyfry';
+      if(pinTakenBy(v.pin)) return 'Ten PIN jest już używany';
+      return '';
+    }});
+  if(!v) return;
+  if(!await askConfirm(`Dodać użytkownika ${v.name} z PIN-em ${v.pin}?`,{title:'Dodać użytkownika?',ok:'Dodaj'})) return;
+  const num = USERS.reduce((m,u)=>Math.max(m,+(u.id.match(/^u(\d+)$/)||[0,0])[1]),0)+1;
+  const id = 'u'+num;
+  try{
+    const list = sortUsers(plainUsers().concat([{id, name:v.name, hash:await pinHash(v.pin), perms:{msg:false,news:false}}]));
+    const pins = {...pinsMap, [id]:v.pin};
+    await saveUsers(list, pins); pinsMap = pins; renderUsersCard();
+    toast('Dodano: '+v.name);
+  }catch(e){ console.error(e); toast('Błąd zapisu — sprawdź połączenie'); }
+};
+async function propagateRename(id, oldName, newName){   // wpisy trzymają imię osobno — poprawiamy je wszędzie
+  const C = collection(db,COL), patches = new Map();
+  const add = (snap, field)=>snap.forEach(d=>patches.set(d.id, {...(patches.get(d.id)||{}), [field]:newName}));
+  const [r1,r2,r3,r4] = await Promise.all([
+    getDocs(query(C, where('userId','==',id))), getDocs(query(C, where('addedBy','==',oldName))),
+    getDocs(query(C, where('removedBy','==',oldName))), getDocs(query(C, where('pwaUser','==',id)))
+  ]);
+  add(r1,'name'); add(r2,'addedBy'); add(r3,'removedBy'); add(r4,'pwaName');
+  const all = [...patches.entries()];
+  for(let i=0;i<all.length;i+=400){
+    const b = writeBatch(db);
+    all.slice(i,i+400).forEach(([docId,patch])=>b.update(doc(db,COL,docId),patch));
+    await b.commit();
+  }
+}
+window.userEdit = async id => {
+  if(!isOwner() || !pinsMap) return;
+  const u = USERS.find(x=>x.id===id); if(!u) return;
+  const v = await askForm({title:'Edytuj: '+u.name, ok:'Dalej', fields:[{key:'name',label:'Imię i nazwisko',max:30,value:u.name},{key:'pin',label:'PIN (4 cyfry)',numeric:true,max:4,value:pinsMap[id]||''}],
+    validate: v=>{
+      if(!v.name) return 'Wpisz imię';
+      if(USERS.some(x=>x.id!==id && x.name.toLowerCase()===v.name.toLowerCase())) return 'Taka osoba już jest na liście';
+      if(!/^\d{4}$/.test(v.pin)) return 'PIN musi mieć 4 cyfry';
+      if(pinTakenBy(v.pin,id)) return 'Ten PIN jest już używany';
+      return '';
+    }});
+  if(!v) return;
+  const nameChanged = v.name!==u.name, pinChanged = v.pin!==pinsMap[id];
+  if(!nameChanged && !pinChanged){ toast('Bez zmian'); return; }
+  const parts = []; if(nameChanged) parts.push(`imię: ${u.name} → ${v.name}`); if(pinChanged) parts.push(`PIN: ${pinsMap[id]||'—'} → ${v.pin}`);
+  if(!await askConfirm(`Zapisać zmiany? ${parts.join('; ')}.`,{title:'Zapisać zmiany?',ok:'Zapisz'})) return;
+  try{
+    const list = plainUsers().map(x=>x.id===id ? {...x, name:v.name} : x);
+    if(pinChanged) list.find(x=>x.id===id).hash = await pinHash(v.pin);
+    const pins = {...pinsMap, [id]:v.pin};
+    await saveUsers(sortUsers(list), pins); pinsMap = pins; renderUsersCard();
+    if(nameChanged) await propagateRename(id, u.name, v.name);
+    toast('Zapisano ✓');
+  }catch(e){ console.error(e); toast('Błąd zapisu — sprawdź połączenie'); }
+};
+window.userPerm = async (id, key) => {
+  if(!isOwner() || !pinsMap || id===ADMIN_ID) return;
+  const u = USERS.find(x=>x.id===id); if(!u) return;
+  try{
+    const list = plainUsers().map(x=>x.id===id ? {...x, perms:{...x.perms, [key]:!x.perms[key]}} : x);
+    await saveUsers(list, pinsMap);
+    toast(`${u.name}: ${key==='msg'?'wiadomości':'nowości'} ${list.find(x=>x.id===id).perms[key]?'włączone':'wyłączone'}`);
+  }catch(e){ console.error(e); toast('Błąd zapisu — sprawdź połączenie'); }
+};
+window.userDelete = async id => {
+  if(!isOwner() || !pinsMap || id===ADMIN_ID) return;
+  const u = USERS.find(x=>x.id===id); if(!u) return;
+  if(!await askConfirm(`Usunąć użytkownika ${u.name}? Straci dostęp do aplikacji. Jego dotychczasowe wpisy w grafiku zostaną.`,{title:'Usunąć użytkownika?',ok:'Usuń',danger:true})) return;
+  try{
+    const pins = {...pinsMap}; delete pins[id];
+    await saveUsers(plainUsers().filter(x=>x.id!==id), pins); pinsMap = pins; renderUsersCard();
+    toast('Usunięto: '+u.name);
+  }catch(e){ console.error(e); toast('Błąd zapisu — sprawdź połączenie'); }
+};
+
+// ─── ALERT O PUSTYCH PORACH (dziś + jutro) — dzwoneczek dla wszystkich, gdy włączony ───
+let alertEntries = {}, alertList = [], unsubAlerts = null, alertDay = '';
+const WD_PL = ['w niedzielę','w poniedziałek','we wtorek','w środę','w czwartek','w piątek','w sobotę'];
+const SH_PL = {rano:'rano', popoludnie:'po południu', wieczor:'wieczór'};
+const alertSeenKey = () => 'dyzury_alerts_seen_'+me.id;
+const getAlertSeen = () => { try{ return new Set(JSON.parse(localStorage.getItem(alertSeenKey())||'[]')); }catch(e){ return new Set(); } };
+const setAlertSeen = arr => { try{ localStorage.setItem(alertSeenKey(), JSON.stringify(arr)); }catch(e){} };
+function syncBell(){ if(me) document.getElementById('news-bell').classList.toggle('show', canSeeNews() || emptyOn); }
+function subscribeAlerts(){
+  if(unsubAlerts){ unsubAlerts(); unsubAlerts = null; }
+  alertEntries = {};
+  if(!emptyOn || !me){ rebuildAlerts(); return; }
+  const t1 = new Date(); t1.setDate(t1.getDate()+1);
+  alertDay = todayStr();
+  unsubAlerts = onSnapshot(query(collection(db,COL), where('date','>=',alertDay), where('date','<=',ymd(t1))), snap=>{
+    alertEntries = {}; snap.forEach(d=>alertEntries[d.id]=d.data()); rebuildAlerts();
+  }, err=>console.error(err));
+}
+function computeAlerts(){
+  if(!emptyOn) return [];
+  const out = [], hour = new Date().getHours(), all = Object.values(alertEntries);
+  for(let i=0;i<2;i++){
+    const d = new Date(); d.setDate(d.getDate()+i); const ds = ymd(d);
+    SHIFTS.forEach(sh=>{
+      if(i===0 && hour>=CUTOFF[sh.key]) return;   // dzisiejsza pora już zamknięta
+      if(all.some(e=>e.date===ds && e.shift===sh.key && !e.removed)) return;
+      const t = WD_PL[d.getDay()]+' '+SH_PL[sh.key]+' nikt się nie zapisał';
+      out.push({key:ds+':'+sh.key, text:t.charAt(0).toUpperCase()+t.slice(1)});
+    });
+  }
+  return out;
+}
+function rebuildAlerts(){
+  if(!me) return;
+  alertList = computeAlerts();
+  updateNewsBadge();
+  if(document.getElementById('news-ov').classList.contains('show')) renderNews(getNewsSeen());
+}
+
+window.toggleInstallPopup = async () => {
+  if(!isOwner()) return;
+  const val = !installOn, at = new Date().toISOString();
+  installOn = val; renderSettings();
+  try{
+    const data = {id:'settings_app', installPopup:val, updatedAt:at, updatedBy:me.name};
+    if(val) data.installPopupAt = at;   // nowe włączenie = popup wraca także do osób, które wcześniej kliknęły „Nie teraz”
+    await setDoc(doc(db,COL,'settings_app'), data, {merge:true});
+    toast(val ? 'Popup instalacji włączony ✓' : 'Popup instalacji wyłączony');
+  }catch(e){ installOn = !val; renderSettings(); toast('Błąd zapisu — sprawdź połączenie'); }
+};
+window.editCutoff = async () => {
+  if(!isOwner()) return;
+  const v = await askForm({title:'Godziny zamknięcia zapisów', ok:'Dalej', fields:[
+    {key:'rano',label:'Rano — zamknięte od godz. (0–24)',numeric:true,max:2,value:String(CUTOFF.rano)},
+    {key:'popoludnie',label:'Popołudnie — zamknięte od godz. (0–24)',numeric:true,max:2,value:String(CUTOFF.popoludnie)},
+    {key:'wieczor',label:'Wieczór — zamknięte od godz. (0–24)',numeric:true,max:2,value:String(CUTOFF.wieczor)}],
+    validate: v=>{ for(const k of Object.keys(CUTOFF_DEF)){ if(v[k]==='' || +v[k]>24) return 'Podaj godziny od 0 do 24'; } return ''; }});
+  if(!v) return;
+  const cutoff = {rano:+v.rano, popoludnie:+v.popoludnie, wieczor:+v.wieczor};
+  if(!await askConfirm(`Ustawić zamknięcie zapisów: rano ${cutoff.rano}:00, popołudnie ${cutoff.popoludnie}:00, wieczór ${cutoff.wieczor}:00?`,{title:'Zmienić godziny?',ok:'Zmień'})) return;
+  try{
+    await setDoc(doc(db,COL,'settings_app'), {id:'settings_app', cutoff, updatedAt:new Date().toISOString(), updatedBy:me.name}, {merge:true});
+    toast('Godziny zapisane ✓');
+  }catch(e){ toast('Błąd zapisu — sprawdź połączenie'); }
+};
+
+// ─── WIADOMOŚCI Z POPUPEM (dyzury/settings_msg_*): admin pisze, odbiorca klika OK, admin widzi kto zobaczył i kliknął ───
+let msgDocs = {}, msgShowing = null; const msgOpen = new Set(), msgAckedLocal = new Set(), msgSeenWritten = new Set();
+function subscribeMessages(){
+  onSnapshot(query(collection(db,COL), where('msgAt','>','')), snap=>{
+    msgDocs = {}; snap.forEach(d=>msgDocs[d.id]=d.data());
+    checkMessages(); renderMsgCard();
+  }, err=>console.error(err));
+}
+function checkMessages(){
+  if(!me || msgShowing) return;
+  const m = Object.values(msgDocs).filter(x=>Array.isArray(x.to) && x.to.includes(me.id) && !(x.acks && x.acks[me.id]) && !msgAckedLocal.has(x.id))
+    .sort((a,b)=>a.msgAt.localeCompare(b.msgAt))[0];
+  if(!m) return;
+  msgShowing = m.id;
+  document.getElementById('msg-text').textContent = m.text.replace(/\{imi[eę]\}/gi, me.name.split(' ')[0]);
+  const ok = document.getElementById('msg-ok'); ok.disabled = false;
+  document.getElementById('msg-ov').classList.add('show');
+  if(!(m.seen && m.seen[me.id]) && !msgSeenWritten.has(m.id)){
+    msgSeenWritten.add(m.id);
+    setDoc(doc(db,COL,m.id), {seen:{[me.id]:{name:me.name, at:new Date().toISOString()}}}, {merge:true}).catch(e=>console.error(e));
+  }
+  ok.onclick = async () => {
+    ok.disabled = true;
+    try{
+      await setDoc(doc(db,COL,m.id), {acks:{[me.id]:{name:me.name, at:new Date().toISOString()}}}, {merge:true});
+      msgAckedLocal.add(m.id);
+      document.getElementById('msg-ov').classList.remove('show');
+      msgShowing = null; checkMessages();
+    }catch(e){ ok.disabled = false; toast('Nie udało się zapisać — spróbuj ponownie'); }
+  };
+}
+const uName = (id, m) => (USERS.find(u=>u.id===id)||{}).name || (m.toNames||{})[id] || id;
+function renderMsgCard(){
+  const el = document.getElementById('msg-card'); if(!el) return;
+  if(!hasPerm('msg') || curView!=='set'){ el.innerHTML = ''; return; }
+  const list = Object.values(msgDocs).filter(m=>isOwner() || m.fromId===me.id).sort((a,b)=>b.msgAt.localeCompare(a.msgAt)).slice(0,10);
+  el.innerHTML = `<div class="set-card"><h4>Wiadomości z popupem</h4>${list.map(m=>{
+    const to = m.to||[], acks = m.acks||{}, seen = m.seen||{};
+    const nOk = to.filter(id=>acks[id]).length, open = msgOpen.has(m.id);
+    const rows = to.map(id=>{
+      const nm = esc(uName(id,m));
+      if(acks[id]) return `<div class="ok"><span><i class="fa-solid fa-circle-check sp"></i>${nm}</span><span>OK · ${fmtTs(acks[id].at)}</span></div>`;
+      if(seen[id]) return `<div class="sn"><span><i class="fa-solid fa-eye sp"></i>${nm}</span><span>zobaczył(a) ${fmtTs(seen[id].at)}, bez OK</span></div>`;
+      return `<div class="no"><span><i class="fa-regular fa-clock sp"></i>${nm}</span><span>jeszcze nie widział(a)</span></div>`;
+    }).join('');
+    return `<div class="msg-it"><div class="msg-hd" onclick="toggleMsg('${m.id}')"><div class="t">${esc(m.text.length>70?m.text.slice(0,70)+'…':m.text)}<small>${fmtTs(m.msgAt)}</small></div><span class="msg-cnt">OK ${nOk}/${to.length}</span><button class="usr-b del" onclick="event.stopPropagation();msgDelete('${m.id}')" aria-label="Usuń"><i class="fa-solid fa-trash"></i></button></div>${open?`<div class="msg-dt">${rows}</div>`:''}</div>`;
+  }).join('') || '<div class="set-row"><small>Brak wysłanych wiadomości.</small></div>'}<button class="btn btn-o" style="width:100%;margin-top:.7rem;padding:.7rem" onclick="msgCompose()"><i class="fa-solid fa-paper-plane sp"></i>Nowa wiadomość</button></div>`;
+}
+window.toggleMsg = id => { msgOpen.has(id) ? msgOpen.delete(id) : msgOpen.add(id); renderMsgCard(); };
+window.msgDelete = async id => {
+  const md = msgDocs[id];
+  if(!hasPerm('msg') || !md || (!isOwner() && md.fromId!==me.id)) return;
+  if(!await askConfirm('Usunąć tę wiadomość? Osoby, które jej jeszcze nie kliknęły, już jej nie zobaczą.',{title:'Usunąć wiadomość?',ok:'Usuń',danger:true})) return;
+  try{ await deleteDoc(doc(db,COL,id)); toast('Usunięto'); }catch(e){ toast('Błąd usuwania'); }
+};
+let cmpSel = new Set();
+function renderCmpChips(){
+  const all = cmpSel.size===USERS.length;
+  document.getElementById('cmp-cnt').textContent = cmpSel.size ? `Wybrano: ${cmpSel.size}` : 'Nikt nie wybrany';
+  document.getElementById('cmp-rcp').innerHTML = `<button class="chip${all?' on':''}" onclick="cmpToggle('*')">Wszyscy</button>`+
+    USERS.map(u=>`<button class="chip${cmpSel.has(u.id)?' on':''}" onclick="cmpToggle('${u.id}')">${esc(u.name)}</button>`).join('');
+}
+window.cmpToggle = id => {
+  if(id==='*') cmpSel = cmpSel.size===USERS.length ? new Set() : new Set(USERS.map(u=>u.id));
+  else cmpSel.has(id) ? cmpSel.delete(id) : cmpSel.add(id);
+  renderCmpChips();
+};
+window.msgCompose = () => {
+  if(!hasPerm('msg')) return;
+  cmpSel = new Set();   // domyślnie nikt — odbiorców zaznacza się ręcznie albo przyciskiem „Wszyscy”
+  document.getElementById('cmp-text').value = ''; document.getElementById('cmp-err').textContent = '';
+  renderCmpChips();
+  document.getElementById('cmp-ov').classList.add('show');
+};
+window.cmpCancel = () => document.getElementById('cmp-ov').classList.remove('show');
+window.cmpSend = async () => {
+  if(!hasPerm('msg')) return;
+  const text = document.getElementById('cmp-text').value.trim(), err = document.getElementById('cmp-err');
+  if(!text){ err.textContent = 'Wpisz treść wiadomości'; return; }
+  if(!cmpSel.size){ err.textContent = 'Wybierz przynajmniej jednego odbiorcę'; return; }
+  err.textContent = '';
+  const ov = document.getElementById('cmp-ov'); ov.classList.remove('show');
+  const to = USERS.filter(u=>cmpSel.has(u.id)).map(u=>u.id);
+  if(!await askConfirm(`Wysłać wiadomość do ${to.length} ${to.length===1?'osoby':'osób'}? Pojawi się im jako popup po wejściu do aplikacji.`,{title:'Wysłać wiadomość?',ok:'Wyślij'})){ ov.classList.add('show'); return; }
+  const now = new Date(), id = 'settings_msg_'+now.getTime();
+  const toNames = {}; USERS.filter(u=>cmpSel.has(u.id)).forEach(u=>toNames[u.id]=u.name);
+  try{
+    await setDoc(doc(db,COL,id), {id, msgAt:now.toISOString(), text, to, toNames, from:me.name, fromId:me.id, seen:{}, acks:{}});
+    toast('Wysłano ✓');
+  }catch(e){ console.error(e); ov.classList.add('show'); toast('Błąd wysyłania — sprawdź połączenie'); }
+};
+
+window.toggleAdminView = () => {
+  if(!isOwner()) return;
+  adminMode = !adminMode;
+  try{ localStorage.setItem('dyzury_admin_view', adminMode?'1':'0'); }catch(e){}
+  renderSettings(); renderDay(); renderCalendar();
+  toast(adminMode ? 'Rozszerzony widok włączony ✓' : 'Rozszerzony widok wyłączony');
+};   // może dodawać/wypisywać każdego
+function renderDay(){
+  if(!selDate) return;
+  const admin = isAdmin();
+  const mgr = isManager();
+  const canSeeMeta = hasPerm('news');   // godzinę dodania widzą osoby z uprawnieniem „Nowości”
+  const sections = SHIFTS.map(s=>{
+    const list = entriesFor(selDate, s.key);
+    const active = list.filter(e=>!e.removed);
+    const myActive = active.find(e=>e.userId===me.id);
+    const locked = isLocked(selDate, s.key);
+    const items = list.filter(e=>!e.removed || mgr).map(e=>{   // wypisanych widzą tylko Ola i Grzegorz (tryb admin)
+      const isMine = e.userId===me.id;
+      const canNote = isMine && !e.removed && !locked;                 // notatkę edytuje tylko jej autor
+      const canRemove = (isMine || mgr) && !e.removed && !locked;
+      const noteOpen = canNote && openNotes.has(e.id);
+      let meta = '';
+      if(canSeeMeta){
+        meta = 'dodano '+fmtTs(e.createdAt);
+        if(e.addedBy && e.addedBy!==e.name) meta += ' przez '+esc(e.addedBy);
+        if(e.removed) meta += ' · wypisano '+fmtTs(e.removedAt);
+      }
+      const delBtn = admin ? `<button class="btn btn-x" onclick="adminDelete('${e.id}')">Usuń bez śladu</button>` : '';
+      return `<div class="entry${isMine?' mine':''}${e.removed?' removed':''}">
+        <div class="nm-row"><div class="nm">${esc(e.name)}</div>${canNote?`<button class="note-ico${noteOpen?' open':''}${e.note?' has':''}" onclick="toggleNote('${e.id}')" aria-label="Notatka" title="Notatka (opcjonalnie)"><i class="fa-solid fa-note-sticky"></i></button>`:''}</div>
+        ${noteOpen
+          ? `<textarea rows="2" id="note-${e.id}" placeholder="Notatka (opcjonalnie)…" oninput="noteDrafts['${e.id}']=this.value">${esc(noteDrafts[e.id]!==undefined?noteDrafts[e.id]:(e.note||''))}</textarea>`
+          : (e.note?`<div class="note">${esc(e.note)}</div>`:'')}
+        ${(noteOpen||canRemove||delBtn)
+          ? `<div class="row">${noteOpen?`<button class="btn btn-p" onclick="saveNote('${e.id}')">Zapisz notatkę</button>`:''}${canRemove?`<button class="btn btn-d" onclick="removeMe('${e.id}')">${isMine?'Wypisz mnie':'Wypisz'}</button>`:''}${delBtn}</div>`:''}
+        ${meta?`<div class="meta">${meta}</div>`:''}
+      </div>`;
+    }).join('');
+    const avail = USERS.filter(u=>!active.some(e=>e.userId===u.id));
+    const addOpen = mgr && !locked && openAdd.has(s.key);
+    const adminAdd = addOpen ? `<div class="admin-box">
+        ${avail.length
+          ? `<select id="adm-sel-${s.key}">${avail.map(u=>`<option value="${u.id}">${esc(u.name)}</option>`).join('')}</select>
+             <button class="btn btn-o" onclick="adminAdd('${s.key}')"><i class="fa-solid fa-plus sp"></i>Dodaj wybraną osobę</button>`
+          : '<div class="none" style="padding:0">Wszystkie osoby są już wpisane na tę porę.</div>'}
+      </div>` : '';
+    const btns = locked ? `<div class="lock-note"> </div>` : `<div class="row">${myActive ? '' : `<button class="btn btn-g" onclick="addMe('${s.key}')"><i class="fa-solid fa-plus sp"></i>Zapisz mnie</button>`}${mgr ? `<button class="btn btn-add${addOpen?' open':''}" onclick="toggleAdd('${s.key}')"><i class="fa-solid fa-user-plus sp"></i>Dodaj osobę <i class="fa-solid fa-chevron-${addOpen?'up':'down'}" style="font-size:.7em;margin-left:.2em"></i></button>` : ''}</div>`;
+    return `<div class="shift${locked?' locked':''}">
+      <div class="shift-h"><strong>${s.label}</strong><span>${active.length?active.length+' os.':'brak'}</span></div>
+      ${items || '<div class="none">Nikt się jeszcze nie zapisał</div>'}
+      ${btns}
+      ${adminAdd}
+    </div>`;
+  }).join('');
+  document.getElementById('day-content').innerHTML = `
+    <div class="day-nav"><button onclick="shiftDay(-1)" aria-label="Poprzedni dzień"><i class="fa-solid fa-chevron-left"></i></button><h2>${fmtDate(selDate)}</h2><button onclick="shiftDay(1)" aria-label="Następny dzień"><i class="fa-solid fa-chevron-right"></i></button></div>
+    <div class="sub" style="text-align:center">${admin?'Jako administrator możesz dodawać, wypisywać i usuwać każdego.':mgr?'Możesz dodawać i wypisywać każdego. Wypisane osoby zostają widoczne jako przekreślone.':' '}</div>
+    ${sections}
+    ${admin?`<button class="btn btn-x" style="width:100%;margin-bottom:.5rem" onclick="adminWipeDay()">Usuń wszystko z tego dnia (bez śladu)</button>`:''}
+    <button class="btn btn-l" style="width:100%" onclick="closeDay()">Zamknij</button>`;
+}
+
+// ─── AKCJE ───
+window.addMe = async shift => {
+  if(isLocked(selDate,shift)){ toast('Zapisy na tę porę są zamknięte'); renderDay(); return; }
+  if(entriesFor(selDate,shift).some(e=>e.userId===me.id && !e.removed)) return;
+  const id = uid();
+  const rec = {id,date:selDate,shift,userId:me.id,name:me.name,note:'',removed:false,createdAt:new Date().toISOString(),addedBy:me.name};
+  entries[id]=rec; renderDay(); renderCalendar();           // natychmiastowa reakcja
+  try{ await setDoc(doc(db,COL,id),rec); toast('Zapisano ✓'); }
+  catch(e){ delete entries[id]; renderDay(); renderCalendar(); toast('Błąd zapisu — sprawdź połączenie'); }
+};
+window.removeMe = async id => {
+  const e = entries[id]; if(!e || (e.userId!==me.id && !isManager())) return;
+  if(isLocked(e.date,e.shift)){ toast('Zapisy na tę porę są zamknięte'); renderDay(); return; }
+  const who = e.userId===me.id ? 'siebie' : e.name;
+  if(!await askConfirm(`${who==='siebie'?'Wypisać siebie':'Wypisać: '+who} (${fmtDate(e.date)}, ${SHIFTS.find(x=>x.key===e.shift).label.toLowerCase()})?`,{title:'Wypisanie z dyżuru',ok:'Wypisz'})) return;
+  const patch = {removed:true,removedAt:new Date().toISOString(),removedBy:me.name};
+  try{ await updateDoc(doc(db,COL,id),patch); toast('Wypisano'); }
+  catch(err){ toast('Błąd — sprawdź połączenie'); }
+};
+window.toggleNote = id => { openNotes.has(id) ? (openNotes.delete(id), delete noteDrafts[id]) : openNotes.add(id); renderDay(); if(openNotes.has(id)){ const t=document.getElementById('note-'+id); if(t) t.focus(); } };
+window.saveNote = async id => {
+  const e = entries[id]; if(!e || e.userId!==me.id) return;
+  if(isLocked(e.date,e.shift)){ toast('Zapisy na tę porę są zamknięte'); renderDay(); return; }
+  const note = document.getElementById('note-'+id).value.trim();
+  try{ await updateDoc(doc(db,COL,id),{note}); openNotes.delete(id); delete noteDrafts[id]; renderDay(); toast('Notatka zapisana ✓'); }
+  catch(err){ toast('Błąd — sprawdź połączenie'); }
+};
+
+// ─── ADMIN ───
+window.toggleAdd = key => { openAdd.has(key) ? openAdd.delete(key) : openAdd.add(key); renderDay(); };
+window.adminAdd = async shift => {
+  if(!isManager()) return;
+  if(isLocked(selDate,shift)){ toast('Zapisy na tę porę są zamknięte'); renderDay(); return; }
+  const userId = document.getElementById('adm-sel-'+shift).value;
+  const u = USERS.find(x=>x.id===userId); if(!u) return;
+  if(entriesFor(selDate,shift).some(e=>e.userId===u.id && !e.removed)){ toast('Ta osoba już jest wpisana'); return; }
+  const id = uid();
+  const rec = {id,date:selDate,shift,userId:u.id,name:u.name,note:'',removed:false,createdAt:new Date().toISOString(),addedBy:me.name};
+  entries[id]=rec; openAdd.delete(shift); renderDay(); renderCalendar();
+  try{ await setDoc(doc(db,COL,id),rec); toast('Dodano: '+u.name); }
+  catch(e){ delete entries[id]; renderDay(); renderCalendar(); toast('Błąd zapisu'); }
+};
+window.adminDelete = async id => {
+  if(!isAdmin()) return;
+  const be = entries[id]; if(!be) return;
+  if(!await askConfirm(`Usunąć bez śladu wpis: ${be.name} (${fmtDate(be.date)}, ${SHIFTS.find(x=>x.key===be.shift).label.toLowerCase()})? Tego nie da się cofnąć.`,{title:'Usunąć bez śladu?',ok:'Usuń',danger:true})) return;
+  const bak = entries[id]; delete entries[id]; renderDay(); renderCalendar();
+  try{ await deleteDoc(doc(db,COL,id)); toast('Usunięto bez śladu'); }
+  catch(e){ entries[id]=bak; renderDay(); renderCalendar(); toast('Błąd usuwania'); }
+};
+async function deleteMany(ids){
+  for(let i=0;i<ids.length;i+=400){
+    const batch = writeBatch(db);
+    ids.slice(i,i+400).forEach(id=>batch.delete(doc(db,COL,id)));
+    await batch.commit();
+  }
+}
+window.adminWipeDay = async () => {
+  if(!isAdmin()) return;
+  const ids = Object.values(entries).filter(e=>e.date===selDate).map(e=>e.id);
+  if(!ids.length){ toast('Ten dzień jest pusty'); return; }
+  if(!await askConfirm(`Usunąć bez śladu ${ids.length} wpisów z dnia ${selDate}?`,{title:'Wyczyścić dzień?',ok:'Usuń',danger:true})) return;
+  try{ await deleteMany(ids); toast('Dzień wyczyszczony'); }catch(e){ toast('Błąd usuwania'); }
+};
+window.adminWipeMonth = async () => {
+  if(!isOwner()) return;
+  const prefix = `${calYear}-${pad2(calMonth+1)}-`;
+  const ids = Object.values(entries).filter(e=>e.date.startsWith(prefix)).map(e=>e.id);
+  if(!ids.length){ toast('Ten miesiąc jest pusty'); return; }
+  if(!await askConfirm(`Usunąć bez śladu ${ids.length} wpisów z całego miesiąca (${prefix.slice(0,7)})?`,{title:'Wyczyścić miesiąc?',ok:'Usuń',danger:true})) return;
+  try{ await deleteMany(ids); toast('Miesiąc wyczyszczony'); }catch(e){ toast('Błąd usuwania'); }
+};
+window.adminWipeAll = async () => {
+  if(!isOwner()) return;
+  if(!await askConfirm('Usunąć WSZYSTKIE dane (dyżury ze wszystkich miesięcy, historię zmian i powiadomienia)? Tego nie da się cofnąć.',{title:'Usunąć wszystkie dane?',ok:'Usuń wszystko',danger:true})) return;
+  try{
+    const snap = await getDocs(collection(db,COL));
+    const ids = []; snap.forEach(d=>{ if(!d.id.startsWith('settings_')) ids.push(d.id); });   // ustawienia aplikacji zostają
+    await deleteMany(ids);
+    toast(`Usunięto wszystko (${ids.length})`);
+  }catch(e){ toast('Błąd usuwania'); }
+};
+
+document.getElementById('day-overlay').addEventListener('click',e=>{ if(e.target.id==='day-overlay') closeDay(); });
+
+// ─── START PO ZALOGOWANIU ───
+function start(user){
+  me = user; dutyChecked = false;
+  document.getElementById('user-badge').innerHTML = '<i class="fa-solid fa-cat sp"></i>'+esc(me.name);
+  document.getElementById('pin-screen').style.display='none';
+  try{ adminMode = me.id===ADMIN_ID && localStorage.getItem('dyzury_admin_view')==='1'; }catch(e){ adminMode = false; }
+  syncAdminUI();
+  renderCalendar(); subscribeMonth(); subscribeNotifs(); subscribeSeen(); subscribeNews(); initStats(); subscribeSettings(); subscribeMessages();
+}
+setInterval(()=>{ if(!me) return; if(emptyOn){ if(alertDay!==todayStr()) subscribeAlerts(); else rebuildAlerts(); } renderCalendar(); if(document.getElementById('day-overlay').classList.contains('show')){
+  const a=document.activeElement; if(!(a && a.tagName==='TEXTAREA')) renderDay(); } }, 60000);
+window.addEventListener('dyzury-login', e=>start(e.detail));
+if(window.__dyzuryPendingLogin) start(window.__dyzuryPendingLogin);
+</script>
+
+<script>
+(function(){
+  const USERS = [
+    {id:"u1",name:"Beata M",hash:"0378924c08620ae18151fc4a3e6ae3a9e9b43b10f5d6308306cbced3f8527bf0"},
+    {id:"u2",name:"Beata S",hash:"5e42002668a48c93bd20f658106f96c8ee6ddfb41f4dc37252b5cbc0fbd21146"},
+    {id:"u3",name:"Damian",hash:"e6ec3ee57bc5af329b92e8157284f5c1c708e1e7e433f6a2fbb1c8245685d164"},
+    {id:"u4",name:"Emilia",hash:"60daf87f871fde131470ca83180764bf6bcf540bac83e785ca90d9c5b0718cae"},
+    {id:"u5",name:"Grzegorz",hash:"5cccb8422e93cccd919d3e9b96d742e92ecf1b8a36f030a97c4cdc36fb3c9d82"},
+    {id:"u6",name:"Jagoda",hash:"850622a3ca98952f38666870e57e74499b7e8bb3437501e0bdc2e170f41baee8"},
+    {id:"u7",name:"Kasia",hash:"5e68fbcc1e79b61ff04454a51afc842e335c58ae7c96f15a8d4540ad470b21bd"},
+    {id:"u8",name:"Magda",hash:"f882d72f94a630bf542397233d901a13fe02c671756dbca9ba6dfd7f375f858a"},
+    {id:"u9",name:"Monika",hash:"bb1f648fc4f0f90167e2194b3b76f83074b1d13a8a6b75606803bc560e7fdaf0"},
+    {id:"u10",name:"Ola",hash:"42a69ef6abff3ddddb7b46b6a37048f71be835baef99a3e3929e1285d0ea21b8"},
+    {id:"u11",name:"Patrycja",hash:"08391494ccc44956aa4f78146c3513b6967c2388b7745bb285456d984f6d14c2"}
+  ];
+  const LEN=4, KEY='dyzury_user';
+  let entered='';
+  const getUsers=()=>window.__dyzuryUsers||USERS;   // lista z Firestore, a gdy niedostępna — wbudowana
+  const usersWait=()=>Promise.race([window.__usersReady||Promise.resolve(), new Promise(r=>setTimeout(r,3000))]);
+
+  async function sha256Hex(t){
+    const d=await crypto.subtle.digest('SHA-256',new TextEncoder().encode(t));
+    return Array.from(new Uint8Array(d)).map(b=>b.toString(16).padStart(2,'0')).join('');
+  }
+  function login(u){
+    window.__dyzuryPendingLogin=u;
+    window.dispatchEvent(new CustomEvent('dyzury-login',{detail:u}));
+  }
+  // zapamiętane logowanie (sessionStorage — do zamknięcia karty)
+  document.addEventListener('DOMContentLoaded',()=>{
+    try{
+      const saved=sessionStorage.getItem(KEY);
+      if(saved) usersWait().then(()=>{ const u=getUsers().find(x=>x.id===saved); if(u) login({id:u.id,name:u.name}); });
+    }catch(e){}
+  });
+
+  function dots(){for(let i=0;i<LEN;i++)document.getElementById('pd'+i).classList.toggle('filled',i<entered.length)}
+  window.pinKey=function(k){
+    if(entered.length>=LEN)return;
+    entered+=k;dots();
+    if(entered.length===LEN)verify();
+  };
+  window.pinDel=function(){
+    entered=entered.slice(0,-1);dots();
+    document.getElementById('pin-error').textContent='';
+    document.querySelectorAll('.pin-dot').forEach(d=>d.classList.remove('error'));
+  };
+  async function verify(){
+    const h=await sha256Hex('dyzury:'+entered);
+    await usersWait();
+    const u=getUsers().find(x=>x.hash===h);
+    if(u){
+      try{sessionStorage.setItem(KEY,u.id)}catch(e){}
+      entered='';dots();
+      login({id:u.id,name:u.name});
+    } else {
+      document.querySelectorAll('.pin-dot').forEach(d=>d.classList.add('error'));
+      document.getElementById('pin-error').textContent='Nieprawidłowy PIN';
+      setTimeout(()=>{
+        entered='';dots();
+        document.querySelectorAll('.pin-dot').forEach(d=>d.classList.remove('error'));
+        document.getElementById('pin-error').textContent='';
+      },900);
+    }
+  }
+  window.logout=function(){
+    try{sessionStorage.removeItem(KEY)}catch(e){}
+    location.reload();
+  };
+})();
+</script>
+<script>
+// ─── PWA: rejestracja service workera + propozycja instalacji ───
+(function(){
+  if('serviceWorker' in navigator){
+    window.addEventListener('load',()=>navigator.serviceWorker.register('sw.js').catch(e=>console.warn('SW',e)));
+  }
+  const standalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true;
+  const ua = navigator.userAgent;
+  const isIOS = /iphone|ipad|ipod/i.test(ua) || (/Macintosh/i.test(ua) && navigator.maxTouchPoints>1);
+  const deviceName = () => isIOS ? 'iPhone/iPad' : /Android/i.test(ua) ? (/Firefox/i.test(ua) ? 'Android Firefox' : 'Android') : 'komputer';
+  const logInstalledOnce = () => {
+    try{ if(localStorage.getItem('pwa_installed_logged')==='1') return; }catch(e){}
+    if(window.logPwaAction){ window.logPwaAction('installed', deviceName()); try{ localStorage.setItem('pwa_installed_logged','1'); }catch(e){} }
+  };
+  if(standalone){   // uruchomiona z ekranu głównego = jest zainstalowana → zgłoś Grzegorzowi (raz)
+    if(window.__dyzuryPendingLogin) setTimeout(logInstalledOnce, 1500);
+    window.addEventListener('dyzury-login', ()=>setTimeout(logInstalledOnce, 1500));
+    return;
+  }
+  const isFFAndroid = /Android/i.test(ua) && /Firefox/i.test(ua);   // Firefox na Androidzie nie ma okna instalacji — pokazujemy instrukcję
+  const ov = document.getElementById('install-ov');
+  let deferred = null;
+  const SNOOZE_MS = 7*24*60*60*1000;   // po „Nie teraz” popup wraca po 7 dniach
+  const dismissed = () => { try{
+    const t=+localStorage.getItem('pwa_dismissed_at')||0;
+    const resetAt = window.__installPopupAt ? Date.parse(window.__installPopupAt)||0 : 0;
+    if(t < resetAt) return false;   // admin włączył popup ponownie po tym „Nie teraz”
+    return Date.now()-t < SNOOZE_MS;
+  }catch(e){ return false; } };
+  let loggedIn = !!window.__dyzuryPendingLogin;
+  const tryShow = () => {
+    if(loggedIn && window.__installPopupOn===true && !dismissed() && (isIOS || isFFAndroid || deferred) && !ov.classList.contains('show')){
+      ov.classList.add('show');
+      if(window.logPwaSeen) window.logPwaSeen(isIOS ? 'iPhone/iPad' : isFFAndroid ? 'Android Firefox' : 'Android');
+    }
+  };
+  window.closeInstall = (remember, action) => {
+    ov.classList.remove('show');
+    if(remember){ try{ localStorage.setItem('pwa_dismissed_at', String(Date.now())); }catch(e){} }
+    if(action==='dismissed' && window.logPwaAction) window.logPwaAction('dismissed', deviceName());
+  };
+  window.doInstall = async () => {
+    if(!deferred) return closeInstall(false);
+    deferred.prompt();
+    let choice = null;
+    try{ choice = await deferred.userChoice; }catch(e){}
+    deferred = null;
+    if(choice && choice.outcome==='accepted'){ closeInstall(false); logInstalledOnce(); }
+    else closeInstall(true, 'dismissed');
+  };
+  if(isIOS){
+    // iOS nie ma natywnego okna instalacji — pokazujemy instrukcję
+    document.getElementById('install-steps').style.display = 'block';
+    document.getElementById('install-btn').style.display = 'none';
+    document.getElementById('install-text').textContent = 'Na iPhonie / iPadzie instalacja odbywa się przez Safari:';
+  }
+  if(isFFAndroid){
+    document.getElementById('install-steps-ff').style.display = 'block';
+    document.getElementById('install-btn').style.display = 'none';
+    document.getElementById('install-text').textContent = 'W Firefoxie na Androidzie instalacja odbywa się z menu przeglądarki:';
+  }
+  // Android / Chrome / Edge: natywne okno instalacji
+  window.addEventListener('beforeinstallprompt', e=>{
+    e.preventDefault(); deferred = e;
+    tryShow();
+  });
+  // popup tylko gdy admin go włączył (ustawienie z Firestore)
+  window.addEventListener('install-setting', ()=>{
+    if(window.__installPopupOn===true) setTimeout(tryShow, 300);
+    else ov.classList.remove('show');
+  });
+  // popup dopiero po wpisaniu PIN-u
+  window.addEventListener('dyzury-login', ()=>{ loggedIn = true; setTimeout(tryShow, 500); });
+  if(loggedIn) setTimeout(tryShow, 800);
+  window.addEventListener('appinstalled', ()=>{ deferred=null; closeInstall(false); logInstalledOnce(); toast('Zainstalowano ✓'); });
+})();
+</script>
+</body>
+</html>
