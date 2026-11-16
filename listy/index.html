@@ -326,7 +326,7 @@ Przesyłam Ci kocie pozdrowienia!
 Twój Roger ♥`};
 cats.push({n:"Bezdomniaki",c:"#b0a090",img:"bezdomniaki.jpg"},{n:"Roger",c:"#c9a27a",img:"roger.jpg"});
 // PLAKIETKA "MAM JUŻ ŚWIĘTEGO MIKOŁAJA": wpisz 1 przy kocie, który ma mieć plakietkę (0 lub brak = bez plakietki)
-const MAM_MIKOLAJA={Mikifor:1,Felek:1,Bella:0,Luna:0,Truskawka:0,Hrabia:0,Mango:0,Pixel:0,"Łatka":0,Sanah:0,Fasolka:0,Yuki:0,Carmen:0,Limonka:0,Bezdomniaki:0,Roger:0};
+const MAM_MIKOLAJA={Mikifor:1,Felek:1,Bella:1,Luna:1,Truskawka:0,Hrabia:0,Mango:0,Pixel:0,"Łatka":0,Sanah:0,Fasolka:0,Yuki:0,Carmen:0,Limonka:0,Bezdomniaki:0,Roger:0};
 cats.forEach(k=>{k.m=MAM_MIKOLAJA[k.n]===1});
 cats.forEach(k=>{if(T[k.n])k.t=T[k.n];const p=k.t.split('\n\n');let b=p[1];if(b.length>95)b=b.slice(0,95).replace(/\s+\S*$/,'')+'…';k.i=p[0]+' '+b});
 function cat(c){const d=["#2d2d38","#6b6b73","#4a4a55"].includes(c);const e=d?"#f6c64f":"#2b6b3f";
