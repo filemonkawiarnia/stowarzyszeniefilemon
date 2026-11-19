@@ -1203,7 +1203,7 @@ function subscribeAlerts(){
   if(unsubAlerts){ unsubAlerts(); unsubAlerts = null; }
   alertEntries = {};
   if(!emptyActive() || !me){ rebuildAlerts(); return; }
-  const t1 = new Date(); t1.setDate(t1.getDate()+1);
+  const t1 = new Date(); t1.setDate(t1.getDate()+3);
   alertDay = todayStr();
   unsubAlerts = onSnapshot(query(collection(db,COL), where('date','>=',alertDay), where('date','<=',ymd(t1))), snap=>{
     alertEntries = {}; snap.forEach(d=>alertEntries[d.id]=d.data()); rebuildAlerts();
@@ -1214,7 +1214,7 @@ function computeAlerts(){
   if(!me || !hasPerm('notif') || !prefsLoaded) return [];
   if(myPrefs.emptyAlerts !== true) return isOwner() ? [] : [{key:'intro-empty', info:true, text:INTRO_TEXT}];
   const out = [], hour = new Date().getHours(), all = Object.values(alertEntries);
-  for(let i=0;i<2;i++){
+  for(let i=0;i<4;i++){
     const d = new Date(); d.setDate(d.getDate()+i); const ds = ymd(d);
     // alert tylko gdy w danym dniu zapełniona jest dokładnie jedna pora (np. tylko rano)
     const filled = SHIFTS.filter(sh=>all.some(e=>e.date===ds && e.shift===sh.key && !e.removed)).length;
