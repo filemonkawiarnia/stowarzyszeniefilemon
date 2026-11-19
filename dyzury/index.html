@@ -1298,7 +1298,7 @@ function renderMsgCard(){
   const el = document.getElementById('msg-card'); if(!el) return;
   if(!hasPerm('msg') || curView!=='set'){ el.innerHTML = ''; return; }
   const list = Object.values(msgDocs).filter(m=>isOwner() || m.fromId===me.id).sort((a,b)=>b.msgAt.localeCompare(a.msgAt)).slice(0,10);
-  el.innerHTML = `<div class="set-card"><h4>Wiadomości z popupem</h4>${list.map(m=>{
+  el.innerHTML = `<div class="set-card"><h4>Wiadomości</h4>${list.map(m=>{
     const to = m.to||[], acks = m.acks||{}, seen = m.seen||{};
     const nOk = to.filter(id=>acks[id]).length, open = msgOpen.has(m.id);
     const rows = to.map(id=>{
